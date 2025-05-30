@@ -1,6 +1,52 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *         - phone
+ *         - role
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: User's full name
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address
+ *         phone:
+ *           type: string
+ *           description: User's phone number
+ *         password:
+ *           type: string
+ *           format: password
+ *           description: User's password (hashed)
+ *         role:
+ *           type: string
+ *           enum: [admin, doctor, nurse, receptionist, pharmacist, technician]
+ *           description: User's role in the system
+ *         active:
+ *           type: number
+ *           enum: [0, 1]
+ *           default: 1
+ *           description: User's active status
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Timestamp of user creation
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Timestamp of last update
+ */
+
 const userSchema = new mongoose.Schema(
   {
     name: {
