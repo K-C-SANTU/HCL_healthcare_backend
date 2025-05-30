@@ -1,5 +1,87 @@
 const mongoose = require("mongoose");
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Shift:
+ *       type: object
+ *       required:
+ *         - date
+ *         - shiftType
+ *         - startTime
+ *         - endTime
+ *         - capacity
+ *         - department
+ *         - createdBy
+ *       properties:
+ *         date:
+ *           type: string
+ *           format: date
+ *           description: Date of the shift (YYYY-MM-DD)
+ *         shiftType:
+ *           type: string
+ *           enum: [Morning, Afternoon, Night]
+ *           description: Type of shift
+ *         startTime:
+ *           type: string
+ *           pattern: ^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$
+ *           description: Start time in HH:MM format (24-hour)
+ *         endTime:
+ *           type: string
+ *           pattern: ^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$
+ *           description: End time in HH:MM format (24-hour)
+ *         capacity:
+ *           type: number
+ *           minimum: 1
+ *           maximum: 50
+ *           description: Maximum number of staff that can be assigned
+ *         assignedStaff:
+ *           type: array
+ *           items:
+ *             type: string
+ *             format: objectId
+ *           description: List of staff IDs assigned to this shift
+ *         department:
+ *           type: string
+ *           enum: [General, Emergency, ICU, Surgery, Pediatrics, Maternity]
+ *           description: Department where the shift takes place
+ *         status:
+ *           type: string
+ *           enum: [Open, Full, Closed]
+ *           default: Open
+ *           description: Current status of the shift
+ *         description:
+ *           type: string
+ *           maxLength: 500
+ *           description: Optional description or notes about the shift
+ *         createdBy:
+ *           type: string
+ *           format: objectId
+ *           description: ID of the user who created the shift
+ *         updatedBy:
+ *           type: string
+ *           format: objectId
+ *           description: ID of the user who last updated the shift
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Timestamp when the shift was created
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Timestamp when the shift was last updated
+ *       example:
+ *         date: "2024-03-20"
+ *         shiftType: "Morning"
+ *         startTime: "07:00"
+ *         endTime: "15:00"
+ *         capacity: 5
+ *         department: "General"
+ *         status: "Open"
+ *         description: "Regular morning shift in general ward"
+ */
+
 const shiftSchema = new mongoose.Schema(
   {
     date: {
