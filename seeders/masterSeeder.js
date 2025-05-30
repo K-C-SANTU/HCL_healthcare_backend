@@ -49,16 +49,12 @@ const masterSeeder = async () => {
       throw error;
     }
 
-    // Future: Add more seeders here
-    // Step 3: Seed Attendance (when implemented)
-    // Step 4: Seed Sample Staff (when needed)
-
     console.log("=" * 50);
     console.log("🎉 Master Seeding Completed Successfully!");
     console.log("\n📊 Summary:");
     console.log("   ✅ Admin user ready");
     console.log("   ✅ Sample shifts created");
-    console.log("   ✅ Database fully populated");
+    console.log("   ✅ Core system operational");
 
     console.log("\n🎯 Next Steps:");
     console.log("   1. Start the server: npm run dev");
@@ -71,6 +67,14 @@ const masterSeeder = async () => {
     console.log("   • Authentication: /api/auth/*");
     console.log("   • User Management: /api/users/*");
     console.log("   • Shift Management: /api/shifts/*");
+    console.log("   • Attendance Management: /api/attendance/*");
+    console.log("   • Leave Management: /api/leaves/*");
+
+    console.log("\n💡 Note:");
+    console.log(
+      "   Attendance and leave data can be created via API endpoints"
+    );
+    console.log("   Use the comprehensive API documentation for testing");
 
     process.exit(0);
   } catch (error) {
