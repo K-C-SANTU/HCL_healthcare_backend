@@ -105,9 +105,52 @@ router.post("/login", validateLogin, login);
  */
 router.get("/me", protect, getMe);
 
-// @route   PUT /api/auth/updatepassword
-// @desc    Update password
-// @access  Private
+/**
+ * @swagger
+ * /api/auth/updatepassword:
+ *   put:
+ *     summary: Update user password
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 format: password
+ *                 description: Current password
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 6
+ *                 description: New password (minimum 6 characters)
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Password updated successfully
+ *       400:
+ *         description: Validation error or incorrect current password
+ *       401:
+ *         description: Not authorized
+ */
 router.put("/updatepassword", protect, validatePasswordUpdate, updatePassword);
 
 module.exports = router;

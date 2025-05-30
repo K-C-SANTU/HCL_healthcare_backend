@@ -16,6 +16,338 @@ const { protect, authorize } = require("../middleware/auth");
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * tags:
+ *   name: Shifts
+ *   description: Shift management endpoints
+ */
+
+/**
+ * @swagger
+ * /api/shifts:
+ *   get:
+ *     summary: Get all shifts
+ *     tags: [Shifts]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all shifts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 count:
+ *                   type: number
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Shift'
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *   
+ *   post:
+ *     summary: Create a new shift
+ *     tags: [Shifts]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Shift'
+ *     responses:
+ *       201:
+ *         description: Shift created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Shift'
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ */
+
+/**
+ * @swagger
+ * /api/shifts/date-range:
+ *   get:
+ *     summary: Get shifts within a date range
+ *     tags: [Shifts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date (YYYY-MM-DD)
+ *       - in: query
+ *         name: endDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: List of shifts within date range
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Shift'
+ */
+
+/**
+ * @swagger
+ * /api/shifts/conflicts:
+ *   get:
+ *     summary: Check for shift conflicts
+ *     tags: [Shifts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: staffId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Staff ID to check conflicts for
+ *       - in: query
+ *         name: date
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Date to check (YYYY-MM-DD)
+ *       - in: query
+ *         name: startTime
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Start time (HH:MM)
+ *       - in: query
+ *         name: endTime
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: End time (HH:MM)
+ *     responses:
+ *       200:
+ *         description: Conflict check results
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 hasConflicts:
+ *                   type: boolean
+ *                 conflicts:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Shift'
+ */
+
+/**
+ * @swagger
+ * /api/shifts/{id}:
+ *   get:
+ *     summary: Get shift by ID
+ *     tags: [Shifts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Shift ID
+ *     responses:
+ *       200:
+ *         description: Shift details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Shift'
+ *   
+ *   put:
+ *     summary: Update shift
+ *     tags: [Shifts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Shift ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Shift'
+ *     responses:
+ *       200:
+ *         description: Shift updated successfully
+ *   
+ *   delete:
+ *     summary: Delete shift
+ *     tags: [Shifts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Shift ID
+ *     responses:
+ *       200:
+ *         description: Shift deleted successfully
+ */
+
+/**
+ * @swagger
+ * /api/shifts/{id}/assign:
+ *   post:
+ *     summary: Assign staff to shift
+ *     tags: [Shifts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Shift ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - staffIds
+ *             properties:
+ *               staffIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: objectId
+ *                 description: Array of staff IDs to assign
+ *     responses:
+ *       200:
+ *         description: Staff assigned successfully
+ */
+
+/**
+ * @swagger
+ * /api/shifts/{id}/remove-staff:
+ *   put:
+ *     summary: Remove staff from shift
+ *     tags: [Shifts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Shift ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - staffIds
+ *             properties:
+ *               staffIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: objectId
+ *                 description: Array of staff IDs to remove
+ *     responses:
+ *       200:
+ *         description: Staff removed successfully
+ */
+
+/**
+ * @swagger
+ * /api/shifts/staff/{staffId}:
+ *   get:
+ *     summary: Get shifts for a specific staff member
+ *     tags: [Shifts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: staffId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Staff ID
+ *     responses:
+ *       200:
+ *         description: List of shifts for the staff member
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Shift'
+ */
+
 // Validation rules for shift creation
 const createShiftValidation = [
   body("date")
