@@ -21,141 +21,121 @@ const connectDB = async () => {
 
 // Sample shift data
 const getShiftData = (adminId) => {
-  const today = new Date();
   const shifts = [];
 
-  // Generate shifts for the next 7 days
-  for (let i = 0; i < 7; i++) {
-    const shiftDate = new Date(today);
-    shiftDate.setDate(today.getDate() + i);
+  // Morning shifts
+  shifts.push({
+    shiftType: "Morning",
+    startTime: "06:00",
+    endTime: "14:00",
+    requiredStaff: 8,
+    department: "General",
+    description: "General morning shift",
+    createdBy: adminId,
+  });
 
-    // Morning shifts
-    shifts.push({
-      date: shiftDate,
-      shiftType: "Morning",
-      startTime: "06:00",
-      endTime: "14:00",
-      capacity: 8,
-      department: "General",
-      description: "General morning shift",
-      createdBy: adminId,
-    });
+  shifts.push({
+    shiftType: "Morning",
+    startTime: "07:00",
+    endTime: "15:00",
+    requiredStaff: 6,
+    department: "Emergency",
+    description: "Emergency morning shift",
+    createdBy: adminId,
+  });
 
-    shifts.push({
-      date: shiftDate,
-      shiftType: "Morning",
-      startTime: "07:00",
-      endTime: "15:00",
-      capacity: 6,
-      department: "Emergency",
-      description: "Emergency morning shift",
-      createdBy: adminId,
-    });
+  shifts.push({
+    shiftType: "Morning",
+    startTime: "08:00",
+    endTime: "16:00",
+    requiredStaff: 4,
+    department: "ICU",
+    description: "ICU morning shift",
+    createdBy: adminId,
+  });
 
-    shifts.push({
-      date: shiftDate,
-      shiftType: "Morning",
-      startTime: "08:00",
-      endTime: "16:00",
-      capacity: 4,
-      department: "ICU",
-      description: "ICU morning shift",
-      createdBy: adminId,
-    });
+  // Afternoon shifts
+  shifts.push({
+    shiftType: "Afternoon",
+    startTime: "14:00",
+    endTime: "22:00",
+    requiredStaff: 8,
+    department: "General",
+    description: "General afternoon shift",
+    createdBy: adminId,
+  });
 
-    // Afternoon shifts
-    shifts.push({
-      date: shiftDate,
-      shiftType: "Afternoon",
-      startTime: "14:00",
-      endTime: "22:00",
-      capacity: 8,
-      department: "General",
-      description: "General afternoon shift",
-      createdBy: adminId,
-    });
+  shifts.push({
+    shiftType: "Afternoon",
+    startTime: "15:00",
+    endTime: "23:00",
+    requiredStaff: 6,
+    department: "Emergency",
+    description: "Emergency afternoon shift",
+    createdBy: adminId,
+  });
 
-    shifts.push({
-      date: shiftDate,
-      shiftType: "Afternoon",
-      startTime: "15:00",
-      endTime: "23:00",
-      capacity: 6,
-      department: "Emergency",
-      description: "Emergency afternoon shift",
-      createdBy: adminId,
-    });
+  shifts.push({
+    shiftType: "Afternoon",
+    startTime: "14:00",
+    endTime: "22:00",
+    requiredStaff: 5,
+    department: "Surgery",
+    description: "Surgery afternoon shift",
+    createdBy: adminId,
+  });
 
-    shifts.push({
-      date: shiftDate,
-      shiftType: "Afternoon",
-      startTime: "14:00",
-      endTime: "22:00",
-      capacity: 5,
-      department: "Surgery",
-      description: "Surgery afternoon shift",
-      createdBy: adminId,
-    });
+  // Night shifts
+  shifts.push({
+    shiftType: "Night",
+    startTime: "22:00",
+    endTime: "06:00",
+    requiredStaff: 5,
+    department: "General",
+    description: "General night shift",
+    createdBy: adminId,
+  });
 
-    // Night shifts
-    shifts.push({
-      date: shiftDate,
-      shiftType: "Night",
-      startTime: "22:00",
-      endTime: "06:00",
-      capacity: 5,
-      department: "General",
-      description: "General night shift",
-      createdBy: adminId,
-    });
+  shifts.push({
+    shiftType: "Night",
+    startTime: "23:00",
+    endTime: "07:00",
+    requiredStaff: 4,
+    department: "Emergency",
+    description: "Emergency night shift",
+    createdBy: adminId,
+  });
 
-    shifts.push({
-      date: shiftDate,
-      shiftType: "Night",
-      startTime: "23:00",
-      endTime: "07:00",
-      capacity: 4,
-      department: "Emergency",
-      description: "Emergency night shift",
-      createdBy: adminId,
-    });
+  shifts.push({
+    shiftType: "Night",
+    startTime: "22:00",
+    endTime: "06:00",
+    requiredStaff: 3,
+    department: "ICU",
+    description: "ICU night shift",
+    createdBy: adminId,
+  });
 
-    shifts.push({
-      date: shiftDate,
-      shiftType: "Night",
-      startTime: "22:00",
-      endTime: "06:00",
-      capacity: 3,
-      department: "ICU",
-      description: "ICU night shift",
-      createdBy: adminId,
-    });
+  // Special shifts
+  shifts.push({
+    shiftType: "Morning",
+    startTime: "09:00",
+    endTime: "17:00",
+    requiredStaff: 3,
+    department: "Pediatrics",
+    description: "Pediatrics morning shift",
+    createdBy: adminId,
+  });
 
-    // Weekend special shifts
-    if (shiftDate.getDay() === 0 || shiftDate.getDay() === 6) {
-      shifts.push({
-        date: shiftDate,
-        shiftType: "Morning",
-        startTime: "09:00",
-        endTime: "17:00",
-        capacity: 3,
-        department: "Pediatrics",
-        description: "Weekend pediatrics shift",
-        createdBy: adminId,
-      });
-
-      shifts.push({
-        date: shiftDate,
-        shiftType: "Afternoon",
-        startTime: "13:00",
-        endTime: "21:00",
-        capacity: 3,
-        department: "Maternity",
-        description: "Weekend maternity shift",
-        createdBy: adminId,
-      });
-    }
-  }
+  shifts.push({
+    shiftType: "Afternoon",
+    startTime: "13:00",
+    endTime: "21:00",
+    requiredStaff: 3,
+    department: "Maternity",
+    description: "Maternity afternoon shift",
+    createdBy: adminId,
+  });
 
   return shifts;
 };
@@ -213,11 +193,16 @@ if (require.main === module) {
       console.log("   • View shifts: GET /api/shifts");
       console.log("   • Assign staff: POST /api/shifts/:id/assign");
       console.log("   • Check conflicts: GET /api/shifts/conflicts");
-      console.log("   • Filter by date: GET /api/shifts?date=2024-01-01");
+      console.log(
+        "   • Filter by department: GET /api/shifts?department=Emergency"
+      );
+      console.log(
+        "   • Filter by shift type: GET /api/shifts?shiftType=Morning"
+      );
       process.exit(0);
     })
     .catch((error) => {
-      console.error("❌ Shift seeding failed:", error.message);
+      console.error("❌ Seeding failed:", error.message);
       process.exit(1);
     });
 }

@@ -21,7 +21,7 @@ A comprehensive backend API for healthcare staff management with JWT authenticat
 - **Custom Time Ranges** - Create shifts with specific start/end times
 - **Multi-Department Support** - General, Emergency, ICU, Surgery, Pediatrics, Maternity
 - **Shift Types** - Morning, Afternoon, Night shifts
-- **Capacity Management** - Auto-update status based on assignments
+- **Staff Management** - Auto-update status based on assignments
 - **Real-Time Slot Tracking** - Available vs assigned positions
 
 ### ✅ **Attendance Management**
@@ -200,13 +200,12 @@ GET http://localhost:3000/api/shifts
 ```json
 POST /api/shifts
 {
-  "date": "2024-01-20",
   "shiftType": "Morning",
   "startTime": "09:00",
   "endTime": "17:00",
-  "capacity": 5,
+  "requiredStaff": 5,
   "department": "Emergency",
-  "description": "Weekend emergency shift"
+  "description": "Emergency morning shift"
 }
 ```
 
@@ -223,20 +222,20 @@ POST /api/shifts/:id/assign
 
 **✅ Automatic Features:**
 - Conflict detection across time ranges
-- Capacity validation
+- Staff slots validation
 - Duplicate prevention
 - Detailed error reporting
 
 ### **Advanced Filtering**
 ```bash
-# Get Emergency morning shifts for next week
-GET /api/shifts?department=Emergency&shiftType=Morning&startDate=2024-01-15&endDate=2024-01-21
+# Get Emergency morning shifts
+GET /api/shifts?department=Emergency&shiftType=Morning
 
 # Get a specific staff member's schedule
-GET /api/shifts/staff/65f123...?startDate=2024-01-15&endDate=2024-01-21
+GET /api/shifts/staff/65f123...
 
 # Check for conflicts before assignment
-GET /api/shifts/conflicts?staffId=65f123...&date=2024-01-20&startTime=09:00&endTime=17:00
+GET /api/shifts/conflicts?staffId=65f123...&startTime=09:00&endTime=17:00
 ```
 
 ## 📊 Attendance Management Features
@@ -363,11 +362,10 @@ GET /api/leaves/calendar/team?startDate=2024-01-01&endDate=2024-01-31&department
 ### Shift Model
 ```javascript
 {
-  date: Date,                    // Shift date
   shiftType: String,             // "Morning", "Afternoon", "Night"
   startTime: String,             // "HH:MM" (24-hour format)
   endTime: String,               // "HH:MM" (24-hour format)
-  capacity: Number,              // Maximum staff capacity
+  requiredStaff: Number,         // Maximum staff slots
   assignedStaff: [ObjectId],     // References to User model
   department: String,            // Department enum
   status: String,                // "Open", "Full", "Closed"

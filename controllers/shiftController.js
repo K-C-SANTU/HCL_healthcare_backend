@@ -5,28 +5,10 @@ const { validationResult } = require("express-validator");
 // Get all shifts with filtering and pagination
 const getAllShifts = async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 10,
-      date,
-      shiftType,
-      department,
-      status,
-      startDate,
-      endDate,
-    } = req.query;
+    const { page = 1, limit = 10, shiftType, department, status } = req.query;
 
     // Build filter object
     const filter = {};
-
-    if (date) {
-      filter.date = new Date(date);
-    } else if (startDate && endDate) {
-      filter.date = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      };
-    }
 
     if (shiftType) filter.shiftType = shiftType;
     if (department) filter.department = department;
@@ -37,7 +19,7 @@ const getAllShifts = async (req, res) => {
       .populate("createdBy", "name email")
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .sort({ date: 1, startTime: 1 });
+      .sort({ shiftType: 1, startTime: 1 });
 
     const total = await Shift.countDocuments(filter);
 
@@ -200,15 +182,17 @@ const deleteShift = async (req, res) => {
 // Assign staff to shift
 const assignStaff = async (req, res) => {
   try {
-    const { staffIds } = req.body;
-    const shiftId = req.params.id;
-
-    if (!Array.isArray(staffIds) || staffIds.length === 0) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "staffIds must be a non-empty array",
+        message: "Validation errors",
+        errors: errors.array(),
       });
     }
+
+    const { staffIds } = req.body;
+    const shiftId = req.params.id;
 
     const shift = await Shift.findById(shiftId);
     if (!shift) {
@@ -218,8 +202,8 @@ const assignStaff = async (req, res) => {
       });
     }
 
-    // Check if shift has available slots
-    const availableSlots = shift.capacity - shift.assignedStaff.length;
+    // Check available capacity
+    const availableSlots = shift.requiredStaff - shift.assignedStaff.length;
     if (staffIds.length > availableSlots) {
       return res.status(400).json({
         success: false,
@@ -227,46 +211,64 @@ const assignStaff = async (req, res) => {
       });
     }
 
-    // Check for conflicts for each staff member
-    const conflicts = [];
+    // Check for conflicts and validate staff existence
+    const conflictResults = [];
+    const validStaffIds = [];
+
     for (const staffId of staffIds) {
-      const conflictingShifts = await Shift.findConflicts(
+      // Check if staff exists
+      const staff = await User.findById(staffId);
+      if (!staff) {
+        return res.status(404).json({
+          success: false,
+          message: `Staff with ID ${staffId} not found`,
+        });
+      }
+
+      // Check if already assigned to this shift
+      if (shift.assignedStaff.includes(staffId)) {
+        return res.status(400).json({
+          success: false,
+          message: `Staff ${staff.name} is already assigned to this shift`,
+        });
+      }
+
+      // Check for time conflicts - updated to not require date
+      const conflicts = await Shift.findConflicts(
         staffId,
-        shift.date,
         shift.startTime,
         shift.endTime
-      );
+      ).populate("assignedStaff", "name email role");
 
-      if (conflictingShifts.length > 0) {
-        const staff = await User.findById(staffId);
-        conflicts.push({
+      if (conflicts.length > 0) {
+        conflictResults.push({
           staffId,
-          staffName: staff?.name || "Unknown",
-          conflicts: conflictingShifts.map((s) => ({
-            shiftId: s._id,
-            shiftType: s.shiftType,
-            startTime: s.startTime,
-            endTime: s.endTime,
+          staffName: staff.name,
+          conflicts: conflicts.map((c) => ({
+            shiftId: c._id,
+            shiftType: c.shiftType,
+            startTime: c.startTime,
+            endTime: c.endTime,
+            department: c.department,
           })),
         });
+      } else {
+        validStaffIds.push(staffId);
       }
     }
 
-    if (conflicts.length > 0) {
+    // If there are conflicts, return them
+    if (conflictResults.length > 0) {
       return res.status(409).json({
         success: false,
         message: "Shift conflicts detected",
-        conflicts,
+        conflicts: conflictResults,
       });
     }
 
-    // Assign staff (avoid duplicates)
-    const newStaffIds = staffIds.filter(
-      (id) => !shift.assignedStaff.includes(id)
-    );
-    shift.assignedStaff.push(...newStaffIds);
+    // Assign all valid staff
+    shift.assignedStaff.push(...validStaffIds);
     shift.updatedBy = req.user.id;
-
     await shift.save();
 
     const updatedShift = await Shift.findById(shiftId)
@@ -275,7 +277,7 @@ const assignStaff = async (req, res) => {
 
     res.json({
       success: true,
-      message: `${newStaffIds.length} staff assigned successfully`,
+      message: `${validStaffIds.length} staff assigned successfully`,
       data: updatedShift,
     });
   } catch (error) {
@@ -334,22 +336,18 @@ const removeStaff = async (req, res) => {
   }
 };
 
-// Get shifts by date range
-const getShiftsByDateRange = async (req, res) => {
+// Get shifts by department and shift type - replaces the date range function
+const getShiftsByFilter = async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { shiftType, department } = req.query;
 
-    if (!startDate || !endDate) {
-      return res.status(400).json({
-        success: false,
-        message: "startDate and endDate are required",
-      });
-    }
+    const filter = {};
+    if (shiftType) filter.shiftType = shiftType;
+    if (department) filter.department = department;
 
-    const shifts = await Shift.findByDateRange(
-      new Date(startDate),
-      new Date(endDate)
-    ).sort({ date: 1, startTime: 1 });
+    const shifts = await Shift.find(filter)
+      .populate("assignedStaff", "name email role")
+      .sort({ shiftType: 1, startTime: 1 });
 
     res.json({
       success: true,
@@ -359,7 +357,7 @@ const getShiftsByDateRange = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching shifts by date range",
+      message: "Error fetching shifts by filter",
       error: error.message,
     });
   }
@@ -369,22 +367,14 @@ const getShiftsByDateRange = async (req, res) => {
 const getStaffShifts = async (req, res) => {
   try {
     const { staffId } = req.params;
-    const { startDate, endDate } = req.query;
 
     const filter = {
       assignedStaff: staffId,
     };
 
-    if (startDate && endDate) {
-      filter.date = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      };
-    }
-
     const shifts = await Shift.find(filter)
       .populate("assignedStaff", "name email role")
-      .sort({ date: 1, startTime: 1 });
+      .sort({ shiftType: 1, startTime: 1 });
 
     res.json({
       success: true,
@@ -400,21 +390,20 @@ const getStaffShifts = async (req, res) => {
   }
 };
 
-// Check for shift conflicts
+// Check for shift conflicts - updated to remove date dependency
 const checkConflicts = async (req, res) => {
   try {
-    const { staffId, date, startTime, endTime } = req.query;
+    const { staffId, startTime, endTime } = req.query;
 
-    if (!staffId || !date || !startTime || !endTime) {
+    if (!staffId || !startTime || !endTime) {
       return res.status(400).json({
         success: false,
-        message: "staffId, date, startTime, and endTime are required",
+        message: "staffId, startTime, and endTime are required",
       });
     }
 
     const conflicts = await Shift.findConflicts(
       staffId,
-      new Date(date),
       startTime,
       endTime
     ).populate("assignedStaff", "name email role");
@@ -443,7 +432,8 @@ module.exports = {
   deleteShift,
   assignStaff,
   removeStaff,
-  getShiftsByDateRange,
+  getShiftsByFilter,
+  getShiftsByDateRange: getShiftsByFilter,
   getStaffShifts,
   checkConflicts,
 };
