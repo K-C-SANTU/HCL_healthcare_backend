@@ -1,27 +1,13 @@
 const { body } = require("express-validator");
 
-const validateStaff = [
-  body("employeeId")
+const validateUser = [
+  body("name")
     .notEmpty()
-    .withMessage("Employee ID is required")
-    .isLength({ min: 3, max: 20 })
-    .withMessage("Employee ID must be between 3 and 20 characters"),
-
-  body("firstName")
-    .notEmpty()
-    .withMessage("First name is required")
-    .isLength({ min: 2, max: 50 })
-    .withMessage("First name must be between 2 and 50 characters")
+    .withMessage("Name is required")
+    .isLength({ min: 2, max: 100 })
+    .withMessage("Name must be between 2 and 100 characters")
     .matches(/^[a-zA-Z\s]+$/)
-    .withMessage("First name can only contain letters and spaces"),
-
-  body("lastName")
-    .notEmpty()
-    .withMessage("Last name is required")
-    .isLength({ min: 2, max: 50 })
-    .withMessage("Last name must be between 2 and 50 characters")
-    .matches(/^[a-zA-Z\s]+$/)
-    .withMessage("Last name can only contain letters and spaces"),
+    .withMessage("Name can only contain letters and spaces"),
 
   body("email")
     .isEmail()
@@ -34,100 +20,52 @@ const validateStaff = [
     .matches(/^[\+]?[1-9][\d]{0,15}$/)
     .withMessage("Please provide a valid phone number"),
 
-  body("department")
-    .notEmpty()
-    .withMessage("Department is required")
-    .isIn([
-      "Emergency",
-      "Cardiology",
-      "Neurology",
-      "Pediatrics",
-      "Surgery",
-      "Radiology",
-      "Laboratory",
-      "Pharmacy",
-      "Administration",
-      "Nursing",
-    ])
-    .withMessage("Please select a valid department"),
+  body("active")
+    .optional()
+    .isNumeric()
+    .withMessage("Active must be a number (0 or 1)")
+    .isIn([0, 1])
+    .withMessage("Active must be 0 or 1"),
 
-  body("position")
+  body("password")
     .notEmpty()
-    .withMessage("Position is required")
-    .isIn([
-      "Doctor",
-      "Nurse",
-      "Technician",
-      "Administrator",
-      "Pharmacist",
-      "Radiologist",
-      "Lab Technician",
-      "Surgeon",
-      "Specialist",
-    ])
-    .withMessage("Please select a valid position"),
+    .withMessage("Password is required")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long"),
 
-  body("dateOfJoining")
+  body("role")
+    .notEmpty()
+    .withMessage("Role is required")
+    .isIn([
+      "admin",
+      "doctor",
+      "nurse",
+      "receptionist",
+      "pharmacist",
+      "technician",
+    ])
+    .withMessage("Please select a valid role"),
+
+  body("createdBy")
+    .optional()
     .isISO8601()
-    .withMessage("Please provide a valid date of joining (YYYY-MM-DD format)")
+    .withMessage("Please provide a valid date format")
     .toDate(),
 
-  body("salary")
-    .isNumeric()
-    .withMessage("Salary must be a number")
-    .isFloat({ min: 0 })
-    .withMessage("Salary must be a positive number"),
-
-  body("isActive")
+  body("updatedBy")
     .optional()
-    .isBoolean()
-    .withMessage("isActive must be a boolean value"),
-
-  body("address.street")
-    .optional()
-    .isLength({ max: 100 })
-    .withMessage("Street address must not exceed 100 characters"),
-
-  body("address.city")
-    .optional()
-    .isLength({ max: 50 })
-    .withMessage("City must not exceed 50 characters"),
-
-  body("address.state")
-    .optional()
-    .isLength({ max: 50 })
-    .withMessage("State must not exceed 50 characters"),
-
-  body("address.zipCode")
-    .optional()
-    .matches(/^[0-9]{5,10}$/)
-    .withMessage("Please provide a valid zip code"),
-
-  body("address.country")
-    .optional()
-    .isLength({ max: 50 })
-    .withMessage("Country must not exceed 50 characters"),
+    .isISO8601()
+    .withMessage("Please provide a valid date format")
+    .toDate(),
 ];
 
-const validateStaffUpdate = [
-  body("employeeId")
+const validateUserUpdate = [
+  body("name")
     .optional()
-    .isLength({ min: 3, max: 20 })
-    .withMessage("Employee ID must be between 3 and 20 characters"),
-
-  body("firstName")
-    .optional()
-    .isLength({ min: 2, max: 50 })
-    .withMessage("First name must be between 2 and 50 characters")
+    .isLength({ min: 2, max: 100 })
+    .withMessage("Name must be between 2 and 100 characters")
     .matches(/^[a-zA-Z\s]+$/)
-    .withMessage("First name can only contain letters and spaces"),
-
-  body("lastName")
-    .optional()
-    .isLength({ min: 2, max: 50 })
-    .withMessage("Last name must be between 2 and 50 characters")
-    .matches(/^[a-zA-Z\s]+$/)
-    .withMessage("Last name can only contain letters and spaces"),
+    .withMessage("Name can only contain letters and spaces"),
 
   body("email")
     .optional()
@@ -140,82 +78,73 @@ const validateStaffUpdate = [
     .matches(/^[\+]?[1-9][\d]{0,15}$/)
     .withMessage("Please provide a valid phone number"),
 
-  body("department")
-    .optional()
-    .isIn([
-      "Emergency",
-      "Cardiology",
-      "Neurology",
-      "Pediatrics",
-      "Surgery",
-      "Radiology",
-      "Laboratory",
-      "Pharmacy",
-      "Administration",
-      "Nursing",
-    ])
-    .withMessage("Please select a valid department"),
-
-  body("position")
-    .optional()
-    .isIn([
-      "Doctor",
-      "Nurse",
-      "Technician",
-      "Administrator",
-      "Pharmacist",
-      "Radiologist",
-      "Lab Technician",
-      "Surgeon",
-      "Specialist",
-    ])
-    .withMessage("Please select a valid position"),
-
-  body("dateOfJoining")
-    .optional()
-    .isISO8601()
-    .withMessage("Please provide a valid date of joining (YYYY-MM-DD format)")
-    .toDate(),
-
-  body("salary")
+  body("active")
     .optional()
     .isNumeric()
-    .withMessage("Salary must be a number")
-    .isFloat({ min: 0 })
-    .withMessage("Salary must be a positive number"),
+    .withMessage("Active must be a number (0 or 1)")
+    .isIn([0, 1])
+    .withMessage("Active must be 0 or 1"),
 
-  body("isActive")
+  body("password")
     .optional()
-    .isBoolean()
-    .withMessage("isActive must be a boolean value"),
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long"),
 
-  body("address.street")
+  body("role")
     .optional()
-    .isLength({ max: 100 })
-    .withMessage("Street address must not exceed 100 characters"),
+    .isIn([
+      "admin",
+      "doctor",
+      "nurse",
+      "receptionist",
+      "pharmacist",
+      "technician",
+    ])
+    .withMessage("Please select a valid role"),
 
-  body("address.city")
+  body("createdBy")
     .optional()
-    .isLength({ max: 50 })
-    .withMessage("City must not exceed 50 characters"),
+    .isISO8601()
+    .withMessage("Please provide a valid date format")
+    .toDate(),
 
-  body("address.state")
+  body("updatedBy")
     .optional()
-    .isLength({ max: 50 })
-    .withMessage("State must not exceed 50 characters"),
+    .isISO8601()
+    .withMessage("Please provide a valid date format")
+    .toDate(),
+];
 
-  body("address.zipCode")
-    .optional()
-    .matches(/^[0-9]{5,10}$/)
-    .withMessage("Please provide a valid zip code"),
+// Validation for user login
+const validateLogin = [
+  body("email")
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
 
-  body("address.country")
-    .optional()
-    .isLength({ max: 50 })
-    .withMessage("Country must not exceed 50 characters"),
+  body("password").notEmpty().withMessage("Password is required"),
+];
+
+// Validation for password update
+const validatePasswordUpdate = [
+  body("currentPassword")
+    .notEmpty()
+    .withMessage("Current password is required"),
+
+  body("newPassword")
+    .notEmpty()
+    .withMessage("New password is required")
+    .isLength({ min: 6 })
+    .withMessage("New password must be at least 6 characters long")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage(
+      "New password must contain at least one uppercase letter, one lowercase letter, and one number"
+    ),
 ];
 
 module.exports = {
-  validateStaff,
-  validateStaffUpdate,
+  validateUser,
+  validateUserUpdate,
+  validateLogin,
+  validatePasswordUpdate,
 };

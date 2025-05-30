@@ -1,27 +1,27 @@
-const Staff = require("../models/Staff");
+const User = require("../models/User");
 const { validationResult } = require("express-validator");
 
-// Get all staff members
-const getAllStaff = async (req, res) => {
+// Get all users
+const getAllUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 10, department, position, isActive } = req.query;
+    const { page = 1, limit = 10, role, active } = req.query;
 
     // Build filter object
     const filter = {};
-    if (department) filter.department = department;
-    if (position) filter.position = position;
-    if (isActive !== undefined) filter.isActive = isActive === "true";
+    if (role) filter.role = role;
+    if (active !== undefined) filter.active = active;
 
-    const staff = await Staff.find(filter)
+    const users = await User.find(filter)
+      .select("-password")
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
 
-    const total = await Staff.countDocuments(filter);
+    const total = await User.countDocuments(filter);
 
     res.json({
       success: true,
-      data: staff,
+      data: users,
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(total / limit),
@@ -32,39 +32,39 @@ const getAllStaff = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching staff members",
+      message: "Error fetching users",
       error: error.message,
     });
   }
 };
 
-// Get staff member by ID
-const getStaffById = async (req, res) => {
+// Get user by ID
+const getUserById = async (req, res) => {
   try {
-    const staff = await Staff.findById(req.params.id);
+    const user = await User.findById(req.params.id).select("-password");
 
-    if (!staff) {
+    if (!user) {
       return res.status(404).json({
         success: false,
-        message: "Staff member not found",
+        message: "User not found",
       });
     }
 
     res.json({
       success: true,
-      data: staff,
+      data: user,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching staff member",
+      message: "Error fetching user",
       error: error.message,
     });
   }
 };
 
-// Create new staff member
-const createStaff = async (req, res) => {
+// Create new user
+const createUser = async (req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -76,32 +76,36 @@ const createStaff = async (req, res) => {
       });
     }
 
-    const staff = new Staff(req.body);
-    await staff.save();
+    const user = new User(req.body);
+    await user.save();
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
 
     res.status(201).json({
       success: true,
-      message: "Staff member created successfully",
-      data: staff,
+      message: "User created successfully",
+      data: userResponse,
     });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: "Employee ID or email already exists",
+        message: "Email already exists",
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "Error creating staff member",
+      message: "Error creating user",
       error: error.message,
     });
   }
 };
 
-// Update staff member
-const updateStaff = async (req, res) => {
+// Update user
+const updateUser = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -112,89 +116,89 @@ const updateStaff = async (req, res) => {
       });
     }
 
-    const staff = await Staff.findByIdAndUpdate(req.params.id, req.body, {
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
-    });
+    }).select("-password");
 
-    if (!staff) {
+    if (!user) {
       return res.status(404).json({
         success: false,
-        message: "Staff member not found",
+        message: "User not found",
       });
     }
 
     res.json({
       success: true,
-      message: "Staff member updated successfully",
-      data: staff,
+      message: "User updated successfully",
+      data: user,
     });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: "Employee ID or email already exists",
+        message: "Email already exists",
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "Error updating staff member",
+      message: "Error updating user",
       error: error.message,
     });
   }
 };
 
-// Delete staff member
-const deleteStaff = async (req, res) => {
+// Delete user
+const deleteUser = async (req, res) => {
   try {
-    const staff = await Staff.findByIdAndDelete(req.params.id);
+    const user = await User.findByIdAndDelete(req.params.id);
 
-    if (!staff) {
+    if (!user) {
       return res.status(404).json({
         success: false,
-        message: "Staff member not found",
+        message: "User not found",
       });
     }
 
     res.json({
       success: true,
-      message: "Staff member deleted successfully",
+      message: "User deleted successfully",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error deleting staff member",
+      message: "Error deleting user",
       error: error.message,
     });
   }
 };
 
-// Get staff by department
-const getStaffByDepartment = async (req, res) => {
+// Get users by role
+const getUsersByRole = async (req, res) => {
   try {
-    const { department } = req.params;
-    const staff = await Staff.find({ department, isActive: true });
+    const { role } = req.params;
+    const users = await User.find({ role, active: 1 }).select("-password");
 
     res.json({
       success: true,
-      data: staff,
-      count: staff.length,
+      data: users,
+      count: users.length,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching staff by department",
+      message: "Error fetching users by role",
       error: error.message,
     });
   }
 };
 
 module.exports = {
-  getAllStaff,
-  getStaffById,
-  createStaff,
-  updateStaff,
-  deleteStaff,
-  getStaffByDepartment,
+  getAllUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+  getUsersByRole,
 };
