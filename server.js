@@ -35,6 +35,7 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || "development",
+    message:"Test auto deployment"
   });
 });
 
