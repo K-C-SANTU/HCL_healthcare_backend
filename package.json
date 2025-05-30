@@ -8,8 +8,12 @@
     "dev": "nodemon server.js",
     "dev:debug": "nodemon --inspect server.js",
     "dev:watch": "nodemon --watch . --ext js,json,env server.js",
+    "seed": "node seeders/masterSeeder.js",
+    "seed:dev": "nodemon seeders/masterSeeder.js",
     "seed:admin": "node seeders/adminSeeder.js",
     "seed:admin:dev": "nodemon seeders/adminSeeder.js",
+    "seed:shifts": "node seeders/shiftSeeder.js",
+    "seed:shifts:dev": "nodemon seeders/shiftSeeder.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
