@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "b59a8f3d-7c7d-4c1a-8f1d-3e8e6a9e8f1d",
     "name": "HCL Healthcare API",
-    "description": "API collection for HCL Healthcare Management System\n\nBase URL: https://hcl-healthcare-backend.onrender.com\n\nBefore testing:\n1. Import the collection\n2. Create an environment\n3. Set up environment variables:\n   - token\n   - userId\n   - shiftId",
+    "description": "API collection for HCL Healthcare Management System\n\nBase URL: https://hcl-healthcare-backend.onrender.com\n\nBefore testing:\n1. Import the collection\n2. Create an environment\n3. Set up environment variables:\n   - token\n   - userId\n   - shiftId\n   - leaveId\n   - attendanceId",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -478,6 +478,192 @@
           }
         }
       ]
+    },
+    {
+      "name": "Leaves",
+      "item": [
+        {
+          "name": "Request Leave",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has leave data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('object');",
+                  "    pm.environment.set(\"leaveId\", jsonData.data._id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"startDate\": \"2024-03-25\",\n    \"endDate\": \"2024-03-26\",\n    \"leaveType\": \"Sick\",\n    \"reason\": \"Medical appointment\"\n}"
+            },
+            "url": {
+              "raw": "https://hcl-healthcare-backend.onrender.com/api/leaves",
+              "protocol": "https",
+              "host": ["hcl-healthcare-backend", "onrender", "com"],
+              "path": ["api", "leaves"]
+            },
+            "description": "Request a new leave. Available for all authenticated users."
+          }
+        },
+        {
+          "name": "Get All Leaves",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has leaves array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "https://hcl-healthcare-backend.onrender.com/api/leaves",
+              "protocol": "https",
+              "host": ["hcl-healthcare-backend", "onrender", "com"],
+              "path": ["api", "leaves"]
+            },
+            "description": "Get all leaves. Admins see all leaves, users see their own leaves."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Mark Attendance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has attendance data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('object');",
+                  "    pm.environment.set(\"attendanceId\", jsonData.data._id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"date\": \"2024-03-21\",\n    \"status\": \"Present\",\n    \"shiftId\": \"{{shiftId}}\",\n    \"checkInTime\": \"07:00\"\n}"
+            },
+            "url": {
+              "raw": "https://hcl-healthcare-backend.onrender.com/api/attendance",
+              "protocol": "https",
+              "host": ["hcl-healthcare-backend", "onrender", "com"],
+              "path": ["api", "attendance"]
+            },
+            "description": "Mark attendance for a shift. Available for all authenticated users."
+          }
+        },
+        {
+          "name": "Get Attendance Report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has attendance data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "https://hcl-healthcare-backend.onrender.com/api/attendance/report?startDate=2024-03-01&endDate=2024-03-31",
+              "protocol": "https",
+              "host": ["hcl-healthcare-backend", "onrender", "com"],
+              "path": ["api", "attendance", "report"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-03-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-03-31"
+                }
+              ]
+            },
+            "description": "Get attendance report. Admins see all attendance, users see their own attendance."
+          }
+        }
+      ]
     }
   ],
   "event": [
@@ -518,6 +704,18 @@
       "value": "shift_id_here",
       "type": "string",
       "description": "ID of a shift for testing"
+    },
+    {
+      "key": "leaveId",
+      "value": "leave_id_here",
+      "type": "string",
+      "description": "ID of a leave request for testing"
+    },
+    {
+      "key": "attendanceId",
+      "value": "attendance_id_here",
+      "type": "string",
+      "description": "ID of an attendance record for testing"
     }
   ]
 } 

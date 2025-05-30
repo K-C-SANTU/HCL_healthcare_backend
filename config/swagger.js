@@ -48,6 +48,19 @@ const options = {
               example: 'Error message description'
             }
           }
+        },
+        SuccessResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true
+            },
+            data: {
+              type: 'object',
+              description: 'Response data object'
+            }
+          }
         }
       }
     },
@@ -66,12 +79,21 @@ const options = {
       {
         name: 'Shifts',
         description: 'Shift management and staff assignment'
+      },
+      {
+        name: 'Leaves',
+        description: 'Leave requests and management'
+      },
+      {
+        name: 'Attendance',
+        description: 'Staff attendance tracking and management'
       }
     ]
   },
   apis: [
     './routes/*.js',
-    './models/*.js'
+    './models/*.js',
+    './controllers/*.js'
   ]
 };
 
