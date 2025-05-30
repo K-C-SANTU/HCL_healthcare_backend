@@ -20,6 +20,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/shifts", require("./routes/shiftRoutes"));
+app.use("/api/attendance", require("./routes/attendanceRoutes"));
+app.use("/api/leaves", require("./routes/leaveRoutes"));
 
 // Basic route for testing
 app.get("/", (req, res) => {
@@ -36,7 +38,7 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || "development",
-    message:"Test auto deployment"
+    message: "Test auto deployment",
   });
 });
 

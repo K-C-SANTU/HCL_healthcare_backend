@@ -1,6 +1,6 @@
 # HCL Healthcare Management System
 
-A comprehensive backend API for healthcare staff management with JWT authentication, role-based access control, and advanced shift scheduling with automatic conflict detection.
+A comprehensive backend API for healthcare staff management with JWT authentication, role-based access control, advanced shift scheduling with automatic conflict detection, attendance tracking, and leave management system.
 
 ## 🚀 Features
 
@@ -8,7 +8,7 @@ A comprehensive backend API for healthcare staff management with JWT authenticat
 - **JWT Authentication** - Secure login with token-based authentication
 - **Role-Based Access Control** - Admin, Doctor, Nurse, Receptionist, Pharmacist, Technician roles
 - **Password Security** - Bcrypt hashing with salt rounds
-- **Input Validation** - Comprehensive request validation
+- **Input Validation** - Comprehensive request validation with express-validator
 - **Active User Management** - Account activation/deactivation
 
 ### ✅ **Staff Management**
@@ -24,6 +24,24 @@ A comprehensive backend API for healthcare staff management with JWT authenticat
 - **Capacity Management** - Auto-update status based on assignments
 - **Real-Time Slot Tracking** - Available vs assigned positions
 
+### ✅ **Attendance Management**
+- **Daily Attendance Tracking** - Mark attendance with multiple status options
+- **Time Tracking** - Check-in and check-out time management
+- **Status Management** - Present, Absent, Late, Sick Leave, Emergency Leave, Half Day
+- **Attendance Reports** - Date range queries and statistics
+- **Staff Attendance Stats** - Individual performance tracking
+- **Daily Summary** - Department-wise attendance overview
+- **Integration with Leave System** - Automatic attendance marking for approved leaves
+
+### ✅ **Leave Management System**
+- **Multiple Leave Types** - Sick, Vacation, Emergency, Maternity, Paternity, Personal, Compensatory, Bereavement
+- **Leave Application Workflow** - Apply, Review, Approve/Reject process
+- **Emergency Leave Support** - Special handling for urgent requests
+- **Leave Calendar** - Team-wide leave visibility
+- **Leave Statistics** - Track leave balances and usage patterns
+- **Replacement Staff Management** - Assign coverage during leaves
+- **Leave Conflict Prevention** - Ensure adequate staffing levels
+
 ### ✅ **Intelligent Conflict Detection**
 - **Time Overlap Detection** - Prevents staff double-booking
 - **Automatic Validation** - Smart assignment checking
@@ -33,14 +51,15 @@ A comprehensive backend API for healthcare staff management with JWT authenticat
 ### ✅ **Comprehensive Filtering & Search**
 - **Date Range Queries** - Weekly/monthly schedule views
 - **Department Filtering** - Department-specific management
-- **Status-Based Search** - Find open/full/closed shifts
-- **Staff Schedule Tracking** - Individual staff schedules
+- **Status-Based Search** - Find open/full/closed shifts and attendance records
+- **Staff Schedule Tracking** - Individual staff schedules with attendance
 
 ### ✅ **Developer Experience**
 - **Master Seeder** - One-command database setup
 - **Comprehensive API Docs** - Detailed endpoint documentation
 - **Development Tools** - Nodemon for auto-restart
 - **Error Handling** - Consistent error responses
+- **Input Validation** - Express-validator with custom validation rules
 
 ## 📋 Prerequisites
 
@@ -157,6 +176,24 @@ GET http://localhost:3000/api/shifts
 - `GET /staff/:staffId` - Get staff's shifts
 - `GET /conflicts` - Check for shift conflicts
 
+### 📊 Attendance Management (`/api/attendance`)
+- `POST /mark` - Mark attendance *[Admin Only]*
+- `PUT /:id` - Update attendance record *[Admin Only]*
+- `GET /` - Get attendance records (with filtering)
+- `GET /date-range` - Get attendance by date range
+- `GET /stats/:staffId` - Get staff attendance statistics
+- `GET /daily-summary/:date` - Get daily attendance summary *[Admin Only]*
+
+### 🏖️ Leave Management (`/api/leaves`)
+- `POST /apply` - Apply for leave
+- `PUT /review/:id` - Review leave application *[Admin Only]*
+- `GET /` - Get leave applications (with filtering)
+- `GET /:id` - Get leave by ID
+- `PUT /cancel/:id` - Cancel leave application
+- `GET /stats/:staffId` - Get leave statistics for staff
+- `GET /calendar/team` - Get team leave calendar
+- `GET /admin/pending` - Get pending leave applications *[Admin Only]*
+
 ## 📊 Shift Management Features
 
 ### **Create Shifts with Custom Times**
@@ -200,6 +237,90 @@ GET /api/shifts/staff/65f123...?startDate=2024-01-15&endDate=2024-01-21
 
 # Check for conflicts before assignment
 GET /api/shifts/conflicts?staffId=65f123...&date=2024-01-20&startTime=09:00&endTime=17:00
+```
+
+## 📊 Attendance Management Features
+
+### **Mark Daily Attendance**
+```json
+POST /api/attendance/mark
+{
+  "staffId": "65f123456789abcdef123457",
+  "shiftId": "65f123456789abcdef123458",
+  "date": "2024-01-20",
+  "status": "Present",
+  "checkInTime": "09:00",
+  "checkOutTime": "17:00",
+  "remarks": "On time arrival"
+}
+```
+
+### **Attendance Status Options**
+- **Present** - Staff member worked the full shift
+- **Absent** - Staff member did not attend
+- **Late** - Staff member arrived late
+- **Sick Leave** - Medical leave
+- **Emergency Leave** - Urgent personal matters
+- **Half Day** - Partial attendance
+
+### **Attendance Statistics**
+```bash
+# Get staff attendance stats for a period
+GET /api/attendance/stats/65f123...?startDate=2024-01-01&endDate=2024-01-31
+
+# Get daily attendance summary
+GET /api/attendance/daily-summary/2024-01-20
+```
+
+## 🏖️ Leave Management Features
+
+### **Apply for Leave**
+```json
+POST /api/leaves/apply
+{
+  "leaveType": "Sick Leave",
+  "startDate": "2024-01-25",
+  "endDate": "2024-01-27",
+  "reason": "Medical treatment required for health condition",
+  "isEmergency": false,
+  "handoverNotes": "Pending cases assigned to Dr. Smith",
+  "emergencyContact": {
+    "name": "John Doe",
+    "phone": "+1234567890",
+    "relationship": "Spouse"
+  }
+}
+```
+
+### **Leave Types Supported**
+- **Sick Leave** - Medical-related absences
+- **Vacation Leave** - Planned time off
+- **Emergency Leave** - Urgent personal matters
+- **Maternity Leave** - Maternity-related leave
+- **Paternity Leave** - Paternity-related leave
+- **Personal Leave** - Personal reasons
+- **Compensatory Leave** - Compensation for overtime
+- **Bereavement Leave** - Family loss
+
+### **Leave Review Process**
+```json
+PUT /api/leaves/review/:id
+{
+  "status": "Approved",
+  "reviewComments": "Approved with replacement staff assigned",
+  "replacementStaff": [
+    {
+      "shiftId": "65f123456789abcdef123458",
+      "staffId": "65f123456789abcdef123459"
+    }
+  ]
+}
+```
+
+### **Team Leave Calendar**
+```bash
+# Get team leave calendar for planning
+GET /api/leaves/calendar/team?startDate=2024-01-01&endDate=2024-01-31&department=Emergency
 ```
 
 ## 🏥 Supported Departments
@@ -253,6 +374,53 @@ GET /api/shifts/conflicts?staffId=65f123...&date=2024-01-20&startTime=09:00&endT
   description: String,           // Optional description
   createdBy: ObjectId,           // Admin who created
   updatedBy: ObjectId,           // Admin who last updated
+  timestamps: true               // Auto createdAt/updatedAt
+}
+```
+
+### Attendance Model
+```javascript
+{
+  staffId: ObjectId,             // Reference to User model
+  shiftId: ObjectId,             // Reference to Shift model
+  date: Date,                    // Attendance date
+  status: String,                // Present, Absent, Late, etc.
+  checkInTime: String,           // "HH:MM" format
+  checkOutTime: String,          // "HH:MM" format
+  totalHours: Number,            // Calculated working hours
+  isLate: Boolean,               // Auto-calculated late status
+  remarks: String,               // Additional notes
+  leaveId: ObjectId,             // Reference to Leave (if applicable)
+  markedBy: ObjectId,            // Admin who marked attendance
+  timestamps: true               // Auto createdAt/updatedAt
+}
+```
+
+### Leave Model
+```javascript
+{
+  staffId: ObjectId,             // Reference to User model
+  leaveType: String,             // Leave type enum
+  startDate: Date,               // Leave start date
+  endDate: Date,                 // Leave end date
+  totalDays: Number,             // Calculated leave duration
+  reason: String,                // Leave reason
+  status: String,                // Pending, Approved, Rejected, Cancelled
+  isEmergency: Boolean,          // Emergency leave flag
+  appliedDate: Date,             // Application date
+  reviewedDate: Date,            // Review date
+  reviewedBy: ObjectId,          // Admin who reviewed
+  reviewComments: String,        // Review notes
+  handoverNotes: String,         // Work handover details
+  emergencyContact: {            // Emergency contact info
+    name: String,
+    phone: String,
+    relationship: String
+  },
+  replacementStaff: [{           // Assigned replacements
+    shiftId: ObjectId,
+    staffId: ObjectId
+  }],
   timestamps: true               // Auto createdAt/updatedAt
 }
 ```
@@ -353,17 +521,23 @@ HCL_event/
 ├── controllers/
 │   ├── authController.js    # Authentication logic
 │   ├── userController.js    # User management
-│   └── shiftController.js   # Shift management
+│   ├── shiftController.js   # Shift management
+│   ├── attendanceController.js # Attendance tracking
+│   └── leaveController.js   # Leave management
 ├── middleware/
 │   ├── auth.js             # JWT & role middleware
 │   └── validation.js       # Request validation
 ├── models/
 │   ├── User.js             # User schema
-│   └── Shift.js            # Shift schema
+│   ├── Shift.js            # Shift schema
+│   ├── Attendance.js       # Attendance schema
+│   └── Leave.js            # Leave schema
 ├── routes/
 │   ├── authRoutes.js       # Auth endpoints
 │   ├── userRoutes.js       # User endpoints
-│   └── shiftRoutes.js      # Shift endpoints
+│   ├── shiftRoutes.js      # Shift endpoints
+│   ├── attendanceRoutes.js # Attendance endpoints
+│   └── leaveRoutes.js      # Leave endpoints
 ├── seeders/
 │   ├── masterSeeder.js     # Master seeder
 │   ├── adminSeeder.js      # Admin user seeder
@@ -379,13 +553,14 @@ HCL_event/
 ## 📈 Future Roadmap
 
 ### Phase 2 Features:
-1. **Attendance Management** - Mark and track attendance
-2. **Daily Schedule Views** - Calendar interfaces
-3. **Notification System** - Real-time alerts for conflicts
-4. **Reporting Dashboard** - Analytics and insights
-5. **Mobile API** - React Native/Flutter support
-6. **Advanced Scheduling** - Recurring shifts, templates
-7. **Staff Preferences** - Preferred shift times and departments
+1. ✅ **Attendance Management** - Mark and track attendance (COMPLETED)
+2. ✅ **Leave Management System** - Complete leave workflow (COMPLETED)
+3. **Daily Schedule Views** - Calendar interfaces
+4. **Notification System** - Real-time alerts for conflicts
+5. **Reporting Dashboard** - Analytics and insights
+6. **Mobile API** - React Native/Flutter support
+7. **Advanced Scheduling** - Recurring shifts, templates
+8. **Staff Preferences** - Preferred shift times and departments
 
 ### Phase 3 Features:
 1. **Real-time Updates** - WebSocket support
@@ -393,6 +568,8 @@ HCL_event/
 3. **Integration APIs** - Third-party calendar systems
 4. **Multi-tenant Support** - Multiple hospitals
 5. **Advanced Analytics** - ML-powered insights
+6. **Document Management** - Medical certificates, leave documents
+7. **Automated Leave Balance** - Annual leave tracking and accrual
 
 ## 🤝 Contributing
 
@@ -408,20 +585,28 @@ This project is licensed under the ISC License.
 
 ## 🏆 Current Progress
 
-**Overall Completion: ~45%**
+**Overall Completion: ~75%**
 
 ✅ **Completed:**
 - Authentication system (100%)
 - User management (100%)
 - Shift management (100%)
 - Conflict detection (100%)
+- **Attendance management (100%)**
+- **Leave management (100%)**
 - Database seeding (100%)
 - API documentation (100%)
 
 🚧 **In Progress:**
-- Attendance management (0%)
 - Daily schedule views (0%)
 - Frontend interface (0%)
+- Notification system (0%)
+
+✅ **Recently Added:**
+- **Comprehensive attendance tracking system**
+- **Full-featured leave management workflow**
+- **Advanced filtering and reporting capabilities**
+- **Integration between attendance and leave systems**
 
 ## 📞 Support & Contact
 
