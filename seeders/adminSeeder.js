@@ -5,8 +5,10 @@ require("dotenv").config();
 
 const seedAdmin = async () => {
   try {
-    // Connect to database
-    await connectDB();
+    // Connect to database only if not already connected
+    if (mongoose.connection.readyState === 0) {
+      await connectDB();
+    }
 
     // Check if admin already exists
     const existingAdmin = await User.findOne({
@@ -14,8 +16,12 @@ const seedAdmin = async () => {
     });
 
     if (existingAdmin) {
-      console.log("❌ Admin user already exists");
-      process.exit(1);
+      console.log("ℹ️  Admin user already exists, skipping creation...");
+      return {
+        success: true,
+        message: "Admin user already exists",
+        admin: existingAdmin,
+      };
     }
 
     // Create admin user
@@ -34,12 +40,29 @@ const seedAdmin = async () => {
     console.log("👤 Role: admin");
     console.log("⚠️  Please change the default password after first login!");
 
-    process.exit(0);
+    return {
+      success: true,
+      message: "Admin user created successfully",
+      admin: adminUser,
+    };
   } catch (error) {
     console.error("❌ Error creating admin user:", error.message);
-    process.exit(1);
+    throw error;
   }
 };
+
+// Only run directly if this file is executed directly
+if (require.main === module) {
+  seedAdmin()
+    .then(() => {
+      console.log("🎉 Admin seeding completed");
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error("❌ Admin seeding failed:", error.message);
+      process.exit(1);
+    });
+}
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (err) => {
@@ -47,5 +70,4 @@ process.on("unhandledRejection", (err) => {
   process.exit(1);
 });
 
-// Run seeder
-seedAdmin();
+module.exports = seedAdmin;

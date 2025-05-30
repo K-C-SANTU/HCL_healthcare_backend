@@ -1,17 +1,46 @@
 # HCL Healthcare Management System
 
-A comprehensive backend API for healthcare staff management with JWT authentication, role-based access control, and user management features.
+A comprehensive backend API for healthcare staff management with JWT authentication, role-based access control, and advanced shift scheduling with automatic conflict detection.
 
 ## 🚀 Features
 
+### ✅ **Authentication & Security**
 - **JWT Authentication** - Secure login with token-based authentication
 - **Role-Based Access Control** - Admin, Doctor, Nurse, Receptionist, Pharmacist, Technician roles
-- **User Management** - CRUD operations for managing healthcare staff
 - **Password Security** - Bcrypt hashing with salt rounds
-- **Admin Seeder** - Automated admin user creation
 - **Input Validation** - Comprehensive request validation
-- **MongoDB Integration** - Document-based data storage
-- **Development Tools** - Nodemon for auto-restart during development
+- **Active User Management** - Account activation/deactivation
+
+### ✅ **Staff Management**
+- **User CRUD Operations** - Complete staff member management
+- **Role-Based Filtering** - Filter staff by department and role
+- **Pagination Support** - Efficient data loading
+- **Search Functionality** - Find staff quickly
+
+### ✅ **Advanced Shift Management** 
+- **Custom Time Ranges** - Create shifts with specific start/end times
+- **Multi-Department Support** - General, Emergency, ICU, Surgery, Pediatrics, Maternity
+- **Shift Types** - Morning, Afternoon, Night shifts
+- **Capacity Management** - Auto-update status based on assignments
+- **Real-Time Slot Tracking** - Available vs assigned positions
+
+### ✅ **Intelligent Conflict Detection**
+- **Time Overlap Detection** - Prevents staff double-booking
+- **Automatic Validation** - Smart assignment checking
+- **Detailed Conflict Reports** - See exactly what conflicts exist
+- **Bulk Assignment Support** - Assign multiple staff with conflict checking
+
+### ✅ **Comprehensive Filtering & Search**
+- **Date Range Queries** - Weekly/monthly schedule views
+- **Department Filtering** - Department-specific management
+- **Status-Based Search** - Find open/full/closed shifts
+- **Staff Schedule Tracking** - Individual staff schedules
+
+### ✅ **Developer Experience**
+- **Master Seeder** - One-command database setup
+- **Comprehensive API Docs** - Detailed endpoint documentation
+- **Development Tools** - Nodemon for auto-restart
+- **Error Handling** - Consistent error responses
 
 ## 📋 Prerequisites
 
@@ -19,20 +48,16 @@ A comprehensive backend API for healthcare staff management with JWT authenticat
 - MongoDB (local or cloud instance)
 - npm or yarn package manager
 
-## 🛠️ Installation & Setup
+## 🛠️ Quick Setup
 
-### 1. Clone the Repository
+### 1. Clone & Install
 ```bash
 git clone <repository-url>
 cd HCL_event
-```
-
-### 2. Install Dependencies
-```bash
 npm install
 ```
 
-### 3. Environment Configuration
+### 2. Environment Configuration
 Create a `.env` file in the root directory:
 ```env
 # Database Configuration
@@ -47,96 +72,155 @@ JWT_EXPIRE=30d
 PORT=3000
 ```
 
-### 4. Create Admin User
-Run the seeder to create the default admin user:
+### 3. Database Setup (One Command!)
 ```bash
-npm run seed:admin
+# 🎉 Seeds everything: admin user + sample shifts
+npm run seed
 ```
 
-**Default Admin Credentials:**
-- **Email:** admin@hcl-squad11.com
-- **Password:** Admin123
-- **Role:** admin
-
-### 5. Start the Server
+### 4. Start Development Server
 ```bash
-# Development mode (with auto-reload)
 npm run dev
-
-# Production mode
-npm start
-
-# Debug mode
-npm run dev:debug
 ```
 
-## 🔐 Authentication
+**🎯 You're ready!** Server running on http://localhost:3000
 
-### Login
-**POST** `/api/auth/login`
-```json
+## 🔐 Default Admin Credentials
+
+```
+Email: admin@hcl-squad11.com
+Password: Admin123
+Role: admin
+```
+
+**⚠️ Important:** Change the default password after first login!
+
+## 📚 API Documentation
+
+### Quick API Test
+```bash
+# 1. Login to get token
+POST http://localhost:3000/api/auth/login
 {
   "email": "admin@hcl-squad11.com",
   "password": "Admin123"
 }
+
+# 2. Use token for protected routes
+Authorization: Bearer <your_jwt_token>
+
+# 3. Get all shifts
+GET http://localhost:3000/api/shifts
 ```
 
-### Get Profile
-**GET** `/api/auth/me`
-```
-Headers: Authorization: Bearer <token>
-```
+### 📖 **[Complete API Documentation](docs/API_DOCUMENTATION.md)**
 
-### Update Password
-**PUT** `/api/auth/updatepassword`
+## 🔄 Available Scripts
+
+### **Production & Development**
+| Script | Description |
+|--------|-------------|
+| `npm start` | Start production server |
+| `npm run dev` | Start development server with auto-reload |
+| `npm run dev:debug` | Start server with Node.js inspector |
+
+### **Database Seeding**
+| Script | Description |
+|--------|-------------|
+| `npm run seed` | **🌟 Master seeder - Seeds everything!** |
+| `npm run seed:dev` | Master seeder with auto-reload |
+| `npm run seed:admin` | Create admin user only |
+| `npm run seed:shifts` | Create sample shifts only |
+
+## 🗂️ API Modules
+
+### 🔐 Authentication (`/api/auth`)
+- `POST /login` - User login
+- `GET /me` - Get current user profile
+- `PUT /updatepassword` - Update password
+
+### 👥 User Management (`/api/users`) *[Admin Only]*
+- `GET /` - Get all users (with filtering)
+- `POST /` - Create new user
+- `PUT /:id` - Update user
+- `DELETE /:id` - Delete user
+- `GET /role/:role` - Get users by role
+
+### 📅 Shift Management (`/api/shifts`) *[Admin Only]*
+- `GET /` - Get all shifts (with advanced filtering)
+- `POST /` - Create new shift
+- `PUT /:id` - Update shift
+- `DELETE /:id` - Delete shift
+- `POST /:id/assign` - Assign staff to shift
+- `PUT /:id/remove-staff` - Remove staff from shift
+- `GET /date-range` - Get shifts by date range
+- `GET /staff/:staffId` - Get staff's shifts
+- `GET /conflicts` - Check for shift conflicts
+
+## 📊 Shift Management Features
+
+### **Create Shifts with Custom Times**
 ```json
+POST /api/shifts
 {
-  "currentPassword": "Admin123",
-  "newPassword": "NewSecurePassword123"
+  "date": "2024-01-20",
+  "shiftType": "Morning",
+  "startTime": "09:00",
+  "endTime": "17:00",
+  "capacity": 5,
+  "department": "Emergency",
+  "description": "Weekend emergency shift"
 }
 ```
 
-## 👥 User Management (Admin Only)
-
-All user management endpoints require admin authentication.
-
-### Get All Users
-**GET** `/api/users?page=1&limit=10&role=doctor&active=1`
-
-### Get User by ID
-**GET** `/api/users/:id`
-
-### Get Users by Role
-**GET** `/api/users/role/:role`
-
-### Create User
-**POST** `/api/users`
+### **Smart Staff Assignment**
 ```json
+POST /api/shifts/:id/assign
 {
-  "name": "Dr. John Doe",
-  "email": "john.doe@hcl-squad11.com",
-  "phone": "+1234567891",
-  "password": "SecurePass123",
-  "role": "doctor"
+  "staffIds": [
+    "65f123456789abcdef123457",
+    "65f123456789abcdef123458"
+  ]
 }
 ```
 
-### Update User
-**PUT** `/api/users/:id`
+**✅ Automatic Features:**
+- Conflict detection across time ranges
+- Capacity validation
+- Duplicate prevention
+- Detailed error reporting
 
-### Delete User
-**DELETE** `/api/users/:id`
+### **Advanced Filtering**
+```bash
+# Get Emergency morning shifts for next week
+GET /api/shifts?department=Emergency&shiftType=Morning&startDate=2024-01-15&endDate=2024-01-21
 
-## 🎭 User Roles
+# Get a specific staff member's schedule
+GET /api/shifts/staff/65f123...?startDate=2024-01-15&endDate=2024-01-21
+
+# Check for conflicts before assignment
+GET /api/shifts/conflicts?staffId=65f123...&date=2024-01-20&startTime=09:00&endTime=17:00
+```
+
+## 🏥 Supported Departments
+
+- **General** - General medical care
+- **Emergency** - Emergency department
+- **ICU** - Intensive Care Unit
+- **Surgery** - Surgical department
+- **Pediatrics** - Children's care
+- **Maternity** - Maternity ward
+
+## 👩‍⚕️ Staff Roles
 
 | Role | Description | Access Level |
 |------|-------------|--------------|
 | `admin` | System Administrator | Full access to all endpoints |
-| `doctor` | Medical Doctor | Limited access (to be defined) |
-| `nurse` | Nursing Staff | Limited access (to be defined) |
-| `receptionist` | Front Desk Staff | Limited access (to be defined) |
-| `pharmacist` | Pharmacy Staff | Limited access (to be defined) |
-| `technician` | Technical Staff | Limited access (to be defined) |
+| `doctor` | Medical Doctor | Limited access (future implementation) |
+| `nurse` | Nursing Staff | Limited access (future implementation) |
+| `receptionist` | Front Desk Staff | Limited access (future implementation) |
+| `pharmacist` | Pharmacy Staff | Limited access (future implementation) |
+| `technician` | Technical Staff | Limited access (future implementation) |
 
 ## 📊 Database Schema
 
@@ -155,6 +239,24 @@ All user management endpoints require admin authentication.
 }
 ```
 
+### Shift Model
+```javascript
+{
+  date: Date,                    // Shift date
+  shiftType: String,             // "Morning", "Afternoon", "Night"
+  startTime: String,             // "HH:MM" (24-hour format)
+  endTime: String,               // "HH:MM" (24-hour format)
+  capacity: Number,              // Maximum staff capacity
+  assignedStaff: [ObjectId],     // References to User model
+  department: String,            // Department enum
+  status: String,                // "Open", "Full", "Closed"
+  description: String,           // Optional description
+  createdBy: ObjectId,           // Admin who created
+  updatedBy: ObjectId,           // Admin who last updated
+  timestamps: true               // Auto createdAt/updatedAt
+}
+```
+
 ## 🛡️ Security Features
 
 - **Password Hashing** - Bcrypt with salt rounds
@@ -162,28 +264,17 @@ All user management endpoints require admin authentication.
 - **Role Authorization** - Middleware for role-based access
 - **Active User Check** - Only active users can login
 - **Input Validation** - Express-validator for request validation
-- **Password Requirements** - Minimum 6 characters with complexity rules
-
-## 📜 Available Scripts
-
-| Script | Description |
-|--------|-------------|
-| `npm start` | Start production server |
-| `npm run dev` | Start development server with nodemon |
-| `npm run dev:debug` | Start server with Node.js inspector |
-| `npm run dev:watch` | Enhanced file watching |
-| `npm run seed:admin` | Create admin user |
-| `npm run seed:admin:dev` | Create admin user with nodemon |
+- **Audit Trail** - Track who created/modified records
 
 ## 🔧 Development Configuration
 
 ### Nodemon Setup
-The project includes nodemon configuration for optimal development experience:
-- Watches: `server.js`, `controllers/`, `routes/`, `middleware/`, `models/`, `config/`, `seeders/`
-- Ignores: `node_modules/`, test files, logs, git files
-- Extensions: `.js`, `.json`, `.env`
-- Delay: 1000ms
-- Restartable: Type `rs` to manually restart
+Enhanced development experience with automatic restart:
+- **Watches:** `server.js`, `controllers/`, `routes/`, `middleware/`, `models/`, `config/`, `seeders/`
+- **Ignores:** `node_modules/`, test files, logs, git files
+- **Extensions:** `.js`, `.json`, `.env`
+- **Delay:** 1000ms
+- **Restartable:** Type `rs` to manually restart
 
 ## 🚨 Important Security Notes
 
@@ -200,12 +291,6 @@ The project includes nodemon configuration for optimal development experience:
 
 ### Common Issues
 
-**Admin user already exists:**
-```bash
-# Delete existing admin user or use current credentials
-# The seeder prevents duplicate admin creation
-```
-
 **Database connection error:**
 ```bash
 # Check MongoDB is running
@@ -213,6 +298,17 @@ sudo systemctl start mongod  # Linux
 brew services start mongodb-community  # macOS
 
 # Verify MONGO_URI in .env file
+```
+
+**Seeding issues:**
+```bash
+# Run seeders individually
+npm run seed:admin
+npm run seed:shifts
+
+# Clear and re-seed
+# (Note: This will delete all existing data)
+npm run seed
 ```
 
 **JWT token errors:**
@@ -234,7 +330,8 @@ lsof -ti:3000 | xargs kill -9  # Kill process on port 3000
 {
   "success": true,
   "message": "Operation successful",
-  "data": { /* response data */ }
+  "data": { /* response data */ },
+  "pagination": { /* pagination info */ }
 }
 ```
 
@@ -243,58 +340,95 @@ lsof -ti:3000 | xargs kill -9  # Kill process on port 3000
 {
   "success": false,
   "message": "Error description",
+  "error": "Detailed error message",
   "errors": [ /* validation errors */ ]
 }
 ```
 
 ## 🔄 Project Structure
-
 ```
 HCL_event/
-├── controllers/          # Business logic
-│   ├── authController.js
-│   └── userController.js
-├── middleware/           # Custom middleware
-│   ├── auth.js
-│   └── validation.js
-├── models/              # Database models
-│   └── User.js
-├── routes/              # API routes
-│   ├── authRoutes.js
-│   └── userRoutes.js
-├── config/              # Configuration files
-│   └── database.js
-├── seeders/             # Database seeders
-│   └── adminSeeder.js
-├── server.js            # Application entry point
-├── package.json         # Project dependencies
-├── nodemon.json         # Nodemon configuration
-└── README.md           # Project documentation
+├── config/
+│   └── database.js          # MongoDB connection
+├── controllers/
+│   ├── authController.js    # Authentication logic
+│   ├── userController.js    # User management
+│   └── shiftController.js   # Shift management
+├── middleware/
+│   ├── auth.js             # JWT & role middleware
+│   └── validation.js       # Request validation
+├── models/
+│   ├── User.js             # User schema
+│   └── Shift.js            # Shift schema
+├── routes/
+│   ├── authRoutes.js       # Auth endpoints
+│   ├── userRoutes.js       # User endpoints
+│   └── shiftRoutes.js      # Shift endpoints
+├── seeders/
+│   ├── masterSeeder.js     # Master seeder
+│   ├── adminSeeder.js      # Admin user seeder
+│   └── shiftSeeder.js      # Shift data seeder
+├── docs/
+│   ├── API_DOCUMENTATION.md # Complete API docs
+│   └── SHIFT_API.md        # Shift-specific docs
+├── server.js               # Main server file
+├── package.json            # Dependencies & scripts
+└── README.md               # This file
 ```
+
+## 📈 Future Roadmap
+
+### Phase 2 Features:
+1. **Attendance Management** - Mark and track attendance
+2. **Daily Schedule Views** - Calendar interfaces
+3. **Notification System** - Real-time alerts for conflicts
+4. **Reporting Dashboard** - Analytics and insights
+5. **Mobile API** - React Native/Flutter support
+6. **Advanced Scheduling** - Recurring shifts, templates
+7. **Staff Preferences** - Preferred shift times and departments
+
+### Phase 3 Features:
+1. **Real-time Updates** - WebSocket support
+2. **Advanced Reporting** - PDF generation, charts
+3. **Integration APIs** - Third-party calendar systems
+4. **Multi-tenant Support** - Multiple hospitals
+5. **Advanced Analytics** - ML-powered insights
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 ## 📄 License
 
 This project is licensed under the ISC License.
 
-## 👨‍💻 Authors
+## 🏆 Current Progress
 
-- **Development Team** - HCL Squad 11
+**Overall Completion: ~45%**
 
-## 🆘 Support
+✅ **Completed:**
+- Authentication system (100%)
+- User management (100%)
+- Shift management (100%)
+- Conflict detection (100%)
+- Database seeding (100%)
+- API documentation (100%)
 
-For support and questions:
-- Create an issue in the repository
-- Contact the development team
-- Review the troubleshooting section above
+🚧 **In Progress:**
+- Attendance management (0%)
+- Daily schedule views (0%)
+- Frontend interface (0%)
 
----
+## 📞 Support & Contact
 
-**Happy Coding! 🚀**
+For technical support or questions:
+1. Check the [API Documentation](docs/API_DOCUMENTATION.md)
+2. Review error messages and logs
+3. Verify environment configuration
+4. Test with provided sample data
+
+**Happy Coding! 🎉**
