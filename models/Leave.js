@@ -281,9 +281,9 @@ leaveSchema.statics.findByDateRange = function (
   };
 
   return this.find(matchConditions)
-    .populate("staffId", "name email role phone")
+    .populate("staffId", "name email role department")
     .populate("reviewedBy", "name email")
-    .populate("affectedShifts", "date shiftType department")
+    .populate("affectedShifts", "shiftType department")
     .populate("replacementStaff.staffId", "name role")
     .sort({ appliedDate: -1 });
 };
