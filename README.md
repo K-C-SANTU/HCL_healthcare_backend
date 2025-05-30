@@ -58,7 +58,7 @@ npm install
 ```bash
 # Create .env file with the following variables:
 PORT=3000
-MONGODB_URI=mongodb://localhost:27017/hcl_healthcare
+MONGODB_URI=mongodb+srv://abhaymishrahello:P7dpIrDLGNl2peGp@cluster0.omnqshk.mongodb.net/HCL_app_db?retryWrites=true&w=majority&appName=Cluster0
 JWT_SECRET=your_jwt_secret_key_here
 NODE_ENV=development
 ```
