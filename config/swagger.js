@@ -10,9 +10,17 @@ const options = {
       contact: {
         name: 'API Support',
         email: 'support@hcl-squad11.com'
+      },
+      license: {
+        name: 'ISC',
+        url: 'https://opensource.org/licenses/ISC'
       }
     },
     servers: [
+      {
+        url: 'https://hcl-healthcare-backend.onrender.com',
+        description: 'Production server'
+      },
       {
         url: 'http://localhost:3000',
         description: 'Development server'
@@ -23,13 +31,43 @@ const options = {
         bearerAuth: {
           type: 'http',
           scheme: 'bearer',
-          bearerFormat: 'JWT'
+          bearerFormat: 'JWT',
+          description: 'Enter your JWT token in the format: Bearer <token>'
+        }
+      },
+      schemas: {
+        Error: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: false
+            },
+            message: {
+              type: 'string',
+              example: 'Error message description'
+            }
+          }
         }
       }
     },
     security: [{
       bearerAuth: []
-    }]
+    }],
+    tags: [
+      {
+        name: 'Authentication',
+        description: 'User authentication and profile management'
+      },
+      {
+        name: 'Users',
+        description: 'User management operations'
+      },
+      {
+        name: 'Shifts',
+        description: 'Shift management and staff assignment'
+      }
+    ]
   },
   apis: [
     './routes/*.js',
