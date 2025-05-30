@@ -57,12 +57,10 @@ const applyLeave = async (req, res) => {
       });
     }
 
-    // Find affected shifts
+    // Find affected shifts - Since shifts no longer have dates,
+    // we find all shifts where the staff member is assigned
+    // The admin will need to manually manage shift assignments during leave periods
     const affectedShifts = await Shift.find({
-      date: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      },
       assignedStaff: staffId,
     });
 
@@ -84,10 +82,8 @@ const applyLeave = async (req, res) => {
 
     const populatedLeave = await Leave.findById(leave._id)
       .populate("staffId", "name email role phone")
-      .populate(
-        "affectedShifts",
-        "date shiftType department startTime endTime"
-      );
+      .populate("affectedShifts", "shiftType department")
+      .populate("replacementStaff.staffId", "name role");
 
     res.status(201).json({
       success: true,
@@ -173,7 +169,7 @@ const reviewLeave = async (req, res) => {
     const populatedLeave = await Leave.findById(leave._id)
       .populate("staffId", "name email role phone")
       .populate("reviewedBy", "name email")
-      .populate("affectedShifts", "date shiftType department")
+      .populate("affectedShifts", "shiftType department")
       .populate("replacementStaff.staffId", "name role");
 
     res.json({
@@ -295,7 +291,7 @@ const getLeaveById = async (req, res) => {
     const leave = await Leave.findById(id)
       .populate("staffId", "name email role phone department")
       .populate("reviewedBy", "name email")
-      .populate("affectedShifts", "date shiftType department startTime endTime")
+      .populate("affectedShifts", "shiftType department startTime endTime")
       .populate("replacementStaff.staffId", "name role");
 
     if (!leave) {
@@ -516,7 +512,7 @@ const getPendingLeaves = async (req, res) => {
 
     const pendingLeaves = await Leave.find({ status: "Pending" })
       .populate("staffId", "name email role phone department")
-      .populate("affectedShifts", "date shiftType department")
+      .populate("affectedShifts", "shiftType department")
       .sort({ appliedDate: 1 }); // Oldest first
 
     // Categorize by urgency

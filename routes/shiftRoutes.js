@@ -52,7 +52,7 @@ const router = express.Router();
  *         description: Not authorized
  *       403:
  *         description: Forbidden - Admin access required
- *   
+ *
  *   post:
  *     summary: Create a new shift
  *     tags: [Shifts]
@@ -89,28 +89,28 @@ const router = express.Router();
  * @swagger
  * /api/shifts/date-range:
  *   get:
- *     summary: Get shifts within a date range
+ *     summary: Get shifts by filter (shiftType, department)
  *     tags: [Shifts]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: startDate
- *         required: true
+ *         name: shiftType
+ *         required: false
  *         schema:
  *           type: string
- *           format: date
- *         description: Start date (YYYY-MM-DD)
+ *           enum: [Morning, Afternoon, Night]
+ *         description: Type of shift
  *       - in: query
- *         name: endDate
- *         required: true
+ *         name: department
+ *         required: false
  *         schema:
  *           type: string
- *           format: date
- *         description: End date (YYYY-MM-DD)
+ *           enum: [General, Emergency, ICU, Surgery, Pediatrics, Maternity]
+ *         description: Department filter
  *     responses:
  *       200:
- *         description: List of shifts within date range
+ *         description: List of filtered shifts
  *         content:
  *           application/json:
  *             schema:
@@ -140,13 +140,6 @@ const router = express.Router();
  *         schema:
  *           type: string
  *         description: Staff ID to check conflicts for
- *       - in: query
- *         name: date
- *         required: true
- *         schema:
- *           type: string
- *           format: date
- *         description: Date to check (YYYY-MM-DD)
  *       - in: query
  *         name: startTime
  *         required: true
@@ -206,7 +199,7 @@ const router = express.Router();
  *                   example: true
  *                 data:
  *                   $ref: '#/components/schemas/Shift'
- *   
+ *
  *   put:
  *     summary: Update shift
  *     tags: [Shifts]
@@ -228,7 +221,7 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: Shift updated successfully
- *   
+ *
  *   delete:
  *     summary: Delete shift
  *     tags: [Shifts]
@@ -350,9 +343,6 @@ const router = express.Router();
 
 // Validation rules for shift creation
 const createShiftValidation = [
-  body("date")
-    .isISO8601()
-    .withMessage("Date must be in valid ISO format (YYYY-MM-DD)"),
   body("shiftType")
     .isIn(["Morning", "Afternoon", "Night"])
     .withMessage("Shift type must be Morning, Afternoon, or Night"),
@@ -362,9 +352,9 @@ const createShiftValidation = [
   body("endTime")
     .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
     .withMessage("End time must be in HH:MM format (24-hour)"),
-  body("capacity")
+  body("requiredStaff")
     .isInt({ min: 1, max: 50 })
-    .withMessage("Capacity must be between 1 and 50"),
+    .withMessage("Required staff must be between 1 and 50"),
   body("department")
     .isIn(["General", "Emergency", "ICU", "Surgery", "Pediatrics", "Maternity"])
     .withMessage("Invalid department"),
@@ -376,10 +366,6 @@ const createShiftValidation = [
 
 // Validation rules for shift update
 const updateShiftValidation = [
-  body("date")
-    .optional()
-    .isISO8601()
-    .withMessage("Date must be in valid ISO format (YYYY-MM-DD)"),
   body("shiftType")
     .optional()
     .isIn(["Morning", "Afternoon", "Night"])
@@ -392,10 +378,10 @@ const updateShiftValidation = [
     .optional()
     .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
     .withMessage("End time must be in HH:MM format (24-hour)"),
-  body("capacity")
+  body("requiredStaff")
     .optional()
     .isInt({ min: 1, max: 50 })
-    .withMessage("Capacity must be between 1 and 50"),
+    .withMessage("Required staff must be between 1 and 50"),
   body("department")
     .optional()
     .isIn(["General", "Emergency", "ICU", "Surgery", "Pediatrics", "Maternity"])

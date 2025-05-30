@@ -7,18 +7,13 @@ const mongoose = require("mongoose");
  *     Shift:
  *       type: object
  *       required:
- *         - date
  *         - shiftType
  *         - startTime
  *         - endTime
- *         - capacity
+ *         - requiredStaff
  *         - department
  *         - createdBy
  *       properties:
- *         date:
- *           type: string
- *           format: date
- *           description: Date of the shift (YYYY-MM-DD)
  *         shiftType:
  *           type: string
  *           enum: [Morning, Afternoon, Night]
@@ -31,7 +26,7 @@ const mongoose = require("mongoose");
  *           type: string
  *           pattern: ^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$
  *           description: End time in HH:MM format (24-hour)
- *         capacity:
+ *         requiredStaff:
  *           type: number
  *           minimum: 1
  *           maximum: 50
@@ -72,11 +67,10 @@ const mongoose = require("mongoose");
  *           format: date-time
  *           description: Timestamp when the shift was last updated
  *       example:
- *         date: "2024-03-20"
  *         shiftType: "Morning"
  *         startTime: "07:00"
  *         endTime: "15:00"
- *         capacity: 5
+ *         requiredStaff: 5
  *         department: "General"
  *         status: "Open"
  *         description: "Regular morning shift in general ward"
@@ -84,10 +78,6 @@ const mongoose = require("mongoose");
 
 const shiftSchema = new mongoose.Schema(
   {
-    date: {
-      type: Date,
-      required: true,
-    },
     shiftType: {
       type: String,
       required: true,
@@ -103,7 +93,7 @@ const shiftSchema = new mongoose.Schema(
       required: true,
       // Format: "HH:MM" (24-hour format)
     },
-    capacity: {
+    requiredStaff: {
       type: Number,
       required: true,
       min: 1,
@@ -153,26 +143,26 @@ const shiftSchema = new mongoose.Schema(
 );
 
 // Create compound index for efficient queries
-shiftSchema.index({ date: 1, shiftType: 1, department: 1 });
+shiftSchema.index({ shiftType: 1, department: 1 });
 shiftSchema.index({ assignedStaff: 1 });
 
 // Virtual for available slots
 shiftSchema.virtual("availableSlots").get(function () {
-  return this.capacity - this.assignedStaff.length;
+  return this.requiredStaff - this.assignedStaff.length;
 });
 
 // Virtual to check if shift is full
 shiftSchema.virtual("isFull").get(function () {
-  return this.assignedStaff.length >= this.capacity;
+  return this.assignedStaff.length >= this.requiredStaff;
 });
 
-// Auto-update status based on capacity
+// Auto-update status based on requiredStaff
 shiftSchema.pre("save", function (next) {
-  if (this.assignedStaff.length >= this.capacity) {
+  if (this.assignedStaff.length >= this.requiredStaff) {
     this.status = "Full";
   } else if (
     this.status === "Full" &&
-    this.assignedStaff.length < this.capacity
+    this.assignedStaff.length < this.requiredStaff
   ) {
     this.status = "Open";
   }
@@ -183,7 +173,7 @@ shiftSchema.pre("save", function (next) {
 shiftSchema.methods.addStaff = function (staffId) {
   if (
     !this.assignedStaff.includes(staffId) &&
-    this.assignedStaff.length < this.capacity
+    this.assignedStaff.length < this.requiredStaff
   ) {
     this.assignedStaff.push(staffId);
     return true;
@@ -201,25 +191,9 @@ shiftSchema.methods.removeStaff = function (staffId) {
   return false;
 };
 
-// Static method to find shifts by date range
-shiftSchema.statics.findByDateRange = function (startDate, endDate) {
+// Static method to find conflicting shifts for a staff member - updated to remove date dependency
+shiftSchema.statics.findConflicts = function (staffId, startTime, endTime) {
   return this.find({
-    date: {
-      $gte: startDate,
-      $lte: endDate,
-    },
-  }).populate("assignedStaff", "name email role");
-};
-
-// Static method to find conflicting shifts for a staff member
-shiftSchema.statics.findConflicts = function (
-  staffId,
-  date,
-  startTime,
-  endTime
-) {
-  return this.find({
-    date: date,
     assignedStaff: staffId,
     $or: [
       {
