@@ -9,22 +9,22 @@ const options = {
       description: 'API documentation for HCL Healthcare Management System',
       contact: {
         name: 'API Support',
-        email: 'support@hcl-squad11.com'
+        email: 'support@hcl-squad11.com',
       },
       license: {
         name: 'ISC',
-        url: 'https://opensource.org/licenses/ISC'
-      }
+        url: 'https://opensource.org/licenses/ISC',
+      },
     },
     servers: [
       {
         url: 'https://hcl-healthcare-backend.onrender.com',
-        description: 'Production server'
+        description: 'Production server',
       },
       {
         url: 'http://localhost:3000',
-        description: 'Development server'
-      }
+        description: 'Development server',
+      },
     ],
     components: {
       securitySchemes: {
@@ -32,8 +32,8 @@ const options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
-          description: 'Enter your JWT token in the format: Bearer <token>'
-        }
+          description: 'Enter your JWT token in the format: Bearer <token>',
+        },
       },
       schemas: {
         Error: {
@@ -41,62 +41,60 @@ const options = {
           properties: {
             success: {
               type: 'boolean',
-              example: false
+              example: false,
             },
             message: {
               type: 'string',
-              example: 'Error message description'
-            }
-          }
+              example: 'Error message description',
+            },
+          },
         },
         SuccessResponse: {
           type: 'object',
           properties: {
             success: {
               type: 'boolean',
-              example: true
+              example: true,
             },
             data: {
               type: 'object',
-              description: 'Response data object'
-            }
-          }
-        }
-      }
+              description: 'Response data object',
+            },
+          },
+        },
+      },
     },
-    security: [{
-      bearerAuth: []
-    }],
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
     tags: [
       {
         name: 'Authentication',
-        description: 'User authentication and profile management'
+        description: 'User authentication and profile management',
       },
       {
         name: 'Users',
-        description: 'User management operations'
+        description: 'User management operations',
       },
       {
         name: 'Shifts',
-        description: 'Shift management and staff assignment'
+        description: 'Shift management and staff assignment',
       },
       {
         name: 'Leaves',
-        description: 'Leave requests and management'
+        description: 'Leave requests and management',
       },
       {
         name: 'Attendance',
-        description: 'Staff attendance tracking and management'
-      }
-    ]
+        description: 'Staff attendance tracking and management',
+      },
+    ],
   },
-  apis: [
-    './routes/*.js',
-    './models/*.js',
-    './controllers/*.js'
-  ]
+  apis: ['./routes/*.js', './models/*.js', './controllers/*.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
 
-module.exports = swaggerSpec; 
+module.exports = swaggerSpec;

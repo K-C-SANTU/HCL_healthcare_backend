@@ -671,18 +671,14 @@
       "listen": "prerequest",
       "script": {
         "type": "text/javascript",
-        "exec": [
-          "// You can add pre-request scripts here"
-        ]
+        "exec": ["// You can add pre-request scripts here"]
       }
     },
     {
       "listen": "test",
       "script": {
         "type": "text/javascript",
-        "exec": [
-          "// You can add global tests here"
-        ]
+        "exec": ["// You can add global tests here"]
       }
     }
   ],
@@ -718,4 +714,4 @@
       "description": "ID of an attendance record for testing"
     }
   ]
-} 
+}

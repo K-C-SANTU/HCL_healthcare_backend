@@ -1,11 +1,11 @@
-const User = require("../models/User");
-const jwt = require("jsonwebtoken");
-const { validationResult } = require("express-validator");
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator');
 
 // Generate JWT Token
-const generateToken = (id) => {
+const generateToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || "30d",
+    expiresIn: process.env.JWT_EXPIRE || '30d',
   });
 };
 
@@ -19,7 +19,7 @@ const login = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "Validation errors",
+        message: 'Validation errors',
         errors: errors.array(),
       });
     }
@@ -27,11 +27,11 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     // Check if user exists and get password field
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: 'Invalid email or password',
       });
     }
 
@@ -39,7 +39,7 @@ const login = async (req, res) => {
     if (user.active === 0) {
       return res.status(401).json({
         success: false,
-        message: "Account is deactivated. Please contact administrator.",
+        message: 'Account is deactivated. Please contact administrator.',
       });
     }
 
@@ -48,7 +48,7 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: 'Invalid email or password',
       });
     }
 
@@ -57,7 +57,7 @@ const login = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Login successful",
+      message: 'Login successful',
       data: {
         user: {
           id: user._id,
@@ -73,7 +73,7 @@ const login = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error logging in",
+      message: 'Error logging in',
       error: error.message,
     });
   }
@@ -104,7 +104,7 @@ const getMe = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching user profile",
+      message: 'Error fetching user profile',
       error: error.message,
     });
   }
@@ -119,21 +119,21 @@ const updatePassword = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "Validation errors",
+        message: 'Validation errors',
         errors: errors.array(),
       });
     }
 
     const { currentPassword, newPassword } = req.body;
 
-    const user = await User.findById(req.user.id).select("+password");
+    const user = await User.findById(req.user.id).select('+password');
 
     // Check current password
     const isMatch = await user.comparePassword(currentPassword);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Current password is incorrect",
+        message: 'Current password is incorrect',
       });
     }
 
@@ -145,7 +145,7 @@ const updatePassword = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Password updated successfully",
+      message: 'Password updated successfully',
       data: {
         token,
       },
@@ -153,7 +153,7 @@ const updatePassword = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error updating password",
+      message: 'Error updating password',
       error: error.message,
     });
   }

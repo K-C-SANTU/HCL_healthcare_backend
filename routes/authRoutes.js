@@ -1,15 +1,8 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const {
-  login,
-  getMe,
-  updatePassword,
-} = require("../controllers/authController");
-const {
-  validateLogin,
-  validatePasswordUpdate,
-} = require("../middleware/validation");
-const { protect } = require("../middleware/auth");
+const { login, getMe, updatePassword } = require('../controllers/authController');
+const { validateLogin, validatePasswordUpdate } = require('../middleware/validation');
+const { protect } = require('../middleware/auth');
 
 /**
  * @swagger
@@ -68,7 +61,7 @@ const { protect } = require("../middleware/auth");
  *       400:
  *         description: Validation error
  */
-router.post("/login", validateLogin, login);
+router.post('/login', validateLogin, login);
 
 /**
  * @swagger
@@ -103,7 +96,7 @@ router.post("/login", validateLogin, login);
  *       401:
  *         description: Not authorized
  */
-router.get("/me", protect, getMe);
+router.get('/me', protect, getMe);
 
 /**
  * @swagger
@@ -151,6 +144,6 @@ router.get("/me", protect, getMe);
  *       401:
  *         description: Not authorized
  */
-router.put("/updatepassword", protect, validatePasswordUpdate, updatePassword);
+router.put('/updatepassword', protect, validatePasswordUpdate, updatePassword);
 
 module.exports = router;

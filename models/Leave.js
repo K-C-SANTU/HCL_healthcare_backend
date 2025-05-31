@@ -1,24 +1,24 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const leaveSchema = new mongoose.Schema(
   {
     staffId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     leaveType: {
       type: String,
       required: true,
       enum: [
-        "Sick Leave",
-        "Vacation Leave",
-        "Emergency Leave",
-        "Maternity Leave",
-        "Paternity Leave",
-        "Personal Leave",
-        "Compensatory Leave",
-        "Bereavement Leave",
+        'Sick Leave',
+        'Vacation Leave',
+        'Emergency Leave',
+        'Maternity Leave',
+        'Paternity Leave',
+        'Personal Leave',
+        'Compensatory Leave',
+        'Bereavement Leave',
       ],
     },
     startDate: {
@@ -43,8 +43,8 @@ const leaveSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ["Pending", "Approved", "Rejected", "Cancelled"],
-      default: "Pending",
+      enum: ['Pending', 'Approved', 'Rejected', 'Cancelled'],
+      default: 'Pending',
     },
     appliedDate: {
       type: Date,
@@ -55,7 +55,7 @@ const leaveSchema = new mongoose.Schema(
     },
     reviewedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Admin who approved/rejected
+      ref: 'User', // Admin who approved/rejected
     },
     reviewComments: {
       type: String,
@@ -89,18 +89,18 @@ const leaveSchema = new mongoose.Schema(
     affectedShifts: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Shift",
+        ref: 'Shift',
       },
     ],
     replacementStaff: [
       {
         shiftId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Shift",
+          ref: 'Shift',
         },
         staffId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
+          ref: 'User',
         },
       },
     ],
@@ -117,30 +117,26 @@ leaveSchema.index({ status: 1, appliedDate: 1 });
 leaveSchema.index({ leaveType: 1, status: 1 });
 
 // Virtual for leave duration in readable format
-leaveSchema.virtual("duration").get(function () {
+leaveSchema.virtual('duration').get(function () {
   if (this.numberOfDays === 1) {
-    return "1 day";
+    return '1 day';
   } else if (this.numberOfDays === 0.5) {
-    return "Half day";
+    return 'Half day';
   } else {
     return `${this.numberOfDays} days`;
   }
 });
 
 // Virtual to check if leave is current/active
-leaveSchema.virtual("isActive").get(function () {
+leaveSchema.virtual('isActive').get(function () {
   const today = new Date();
-  return (
-    this.status === "Approved" &&
-    this.startDate <= today &&
-    this.endDate >= today
-  );
+  return this.status === 'Approved' && this.startDate <= today && this.endDate >= today;
 });
 
 // Virtual to check if leave is upcoming
-leaveSchema.virtual("isUpcoming").get(function () {
+leaveSchema.virtual('isUpcoming').get(function () {
   const today = new Date();
-  return this.status === "Approved" && this.startDate > today;
+  return this.status === 'Approved' && this.startDate > today;
 });
 
 // Method to calculate number of working days
@@ -166,7 +162,7 @@ leaveSchema.methods.checkOverlap = function () {
   return this.constructor.find({
     staffId: this.staffId,
     _id: { $ne: this._id }, // Exclude current leave
-    status: { $in: ["Pending", "Approved"] },
+    status: { $in: ['Pending', 'Approved'] },
     $or: [
       {
         startDate: { $lte: this.endDate },
@@ -177,8 +173,8 @@ leaveSchema.methods.checkOverlap = function () {
 };
 
 // Pre-save middleware to calculate numberOfDays
-leaveSchema.pre("save", function (next) {
-  if (this.isModified("startDate") || this.isModified("endDate")) {
+leaveSchema.pre('save', function (next) {
+  if (this.isModified('startDate') || this.isModified('endDate')) {
     // Calculate number of days
     const timeDifference = this.endDate.getTime() - this.startDate.getTime();
     const dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
@@ -199,13 +195,13 @@ leaveSchema.statics.getLeaveStats = function (staffId, year) {
         staffId: new mongoose.Types.ObjectId(staffId),
         startDate: { $gte: startOfYear },
         endDate: { $lte: endOfYear },
-        status: "Approved",
+        status: 'Approved',
       },
     },
     {
       $group: {
-        _id: "$leaveType",
-        totalDays: { $sum: "$numberOfDays" },
+        _id: '$leaveType',
+        totalDays: { $sum: '$numberOfDays' },
         count: { $sum: 1 },
       },
     },
@@ -213,40 +209,36 @@ leaveSchema.statics.getLeaveStats = function (staffId, year) {
 };
 
 // Static method to get team leave calendar
-leaveSchema.statics.getTeamLeaveCalendar = function (
-  startDate,
-  endDate,
-  department = null
-) {
+leaveSchema.statics.getTeamLeaveCalendar = function (startDate, endDate, department = null) {
   const matchConditions = {
     startDate: { $lte: endDate },
     endDate: { $gte: startDate },
-    status: "Approved",
+    status: 'Approved',
   };
 
   const pipeline = [
     { $match: matchConditions },
     {
       $lookup: {
-        from: "users",
-        localField: "staffId",
-        foreignField: "_id",
-        as: "staff",
+        from: 'users',
+        localField: 'staffId',
+        foreignField: '_id',
+        as: 'staff',
       },
     },
-    { $unwind: "$staff" },
+    { $unwind: '$staff' },
   ];
 
   if (department) {
     pipeline.push({
-      $match: { "staff.department": department },
+      $match: { 'staff.department': department },
     });
   }
 
   pipeline.push({
     $project: {
-      staffName: "$staff.name",
-      staffRole: "$staff.role",
+      staffName: '$staff.name',
+      staffRole: '$staff.role',
       leaveType: 1,
       startDate: 1,
       endDate: 1,
@@ -259,11 +251,7 @@ leaveSchema.statics.getTeamLeaveCalendar = function (
 };
 
 // Static method to find leaves by date range
-leaveSchema.statics.findByDateRange = function (
-  startDate,
-  endDate,
-  filters = {}
-) {
+leaveSchema.statics.findByDateRange = function (startDate, endDate, filters = {}) {
   const matchConditions = {
     $or: [
       {
@@ -281,26 +269,22 @@ leaveSchema.statics.findByDateRange = function (
   };
 
   return this.find(matchConditions)
-    .populate("staffId", "name email role department")
-    .populate("reviewedBy", "name email")
-    .populate("affectedShifts", "shiftType department")
-    .populate("replacementStaff.staffId", "name role")
+    .populate('staffId', 'name email role department')
+    .populate('reviewedBy', 'name email')
+    .populate('affectedShifts', 'shiftType department')
+    .populate('replacementStaff.staffId', 'name role')
     .sort({ appliedDate: -1 });
 };
 
 // Static method to check leave balance
-leaveSchema.statics.getLeaveBalance = function (
-  staffId,
-  year,
-  leaveType = null
-) {
+leaveSchema.statics.getLeaveBalance = function (staffId, year, leaveType = null) {
   const startOfYear = new Date(year, 0, 1);
   const endOfYear = new Date(year, 11, 31);
 
   const matchConditions = {
     staffId: new mongoose.Types.ObjectId(staffId),
     startDate: { $gte: startOfYear, $lte: endOfYear },
-    status: "Approved",
+    status: 'Approved',
   };
 
   if (leaveType) {
@@ -311,12 +295,12 @@ leaveSchema.statics.getLeaveBalance = function (
     { $match: matchConditions },
     {
       $group: {
-        _id: leaveType ? null : "$leaveType",
-        totalDaysUsed: { $sum: "$numberOfDays" },
+        _id: leaveType ? null : '$leaveType',
+        totalDaysUsed: { $sum: '$numberOfDays' },
         count: { $sum: 1 },
       },
     },
   ]);
 };
 
-module.exports = mongoose.model("Leave", leaveSchema);
+module.exports = mongoose.model('Leave', leaveSchema);

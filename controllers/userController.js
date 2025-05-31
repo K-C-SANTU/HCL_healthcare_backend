@@ -1,5 +1,5 @@
-const User = require("../models/User");
-const { validationResult } = require("express-validator");
+const User = require('../models/User');
+const { validationResult } = require('express-validator');
 
 // Get all users
 const getAllUsers = async (req, res) => {
@@ -12,7 +12,7 @@ const getAllUsers = async (req, res) => {
     if (active !== undefined) filter.active = active;
 
     const users = await User.find(filter)
-      .select("-password")
+      .select('-password')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
@@ -32,7 +32,7 @@ const getAllUsers = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching users",
+      message: 'Error fetching users',
       error: error.message,
     });
   }
@@ -41,12 +41,12 @@ const getAllUsers = async (req, res) => {
 // Get user by ID
 const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await User.findById(req.params.id).select('-password');
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
@@ -57,7 +57,7 @@ const getUserById = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching user",
+      message: 'Error fetching user',
       error: error.message,
     });
   }
@@ -71,7 +71,7 @@ const createUser = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "Validation errors",
+        message: 'Validation errors',
         errors: errors.array(),
       });
     }
@@ -85,20 +85,20 @@ const createUser = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "User created successfully",
+      message: 'User created successfully',
       data: userResponse,
     });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: "Email already exists",
+        message: 'Email already exists',
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "Error creating user",
+      message: 'Error creating user',
       error: error.message,
     });
   }
@@ -111,7 +111,7 @@ const updateUser = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "Validation errors",
+        message: 'Validation errors',
         errors: errors.array(),
       });
     }
@@ -119,31 +119,31 @@ const updateUser = async (req, res) => {
     const user = await User.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
-    }).select("-password");
+    }).select('-password');
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
     res.json({
       success: true,
-      message: "User updated successfully",
+      message: 'User updated successfully',
       data: user,
     });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: "Email already exists",
+        message: 'Email already exists',
       });
     }
 
     res.status(500).json({
       success: false,
-      message: "Error updating user",
+      message: 'Error updating user',
       error: error.message,
     });
   }
@@ -157,18 +157,18 @@ const deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
     res.json({
       success: true,
-      message: "User deleted successfully",
+      message: 'User deleted successfully',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error deleting user",
+      message: 'Error deleting user',
       error: error.message,
     });
   }
@@ -178,7 +178,7 @@ const deleteUser = async (req, res) => {
 const getUsersByRole = async (req, res) => {
   try {
     const { role } = req.params;
-    const users = await User.find({ role, active: 1 }).select("-password");
+    const users = await User.find({ role, active: 1 }).select('-password');
 
     res.json({
       success: true,
@@ -188,7 +188,7 @@ const getUsersByRole = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching users by role",
+      message: 'Error fetching users by role',
       error: error.message,
     });
   }

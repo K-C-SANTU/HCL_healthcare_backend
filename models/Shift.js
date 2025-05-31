@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 /**
  * @swagger
@@ -81,7 +81,7 @@ const shiftSchema = new mongoose.Schema(
     shiftType: {
       type: String,
       required: true,
-      enum: ["Morning", "Afternoon", "Night"],
+      enum: ['Morning', 'Afternoon', 'Night'],
     },
     startTime: {
       type: String,
@@ -102,25 +102,18 @@ const shiftSchema = new mongoose.Schema(
     assignedStaff: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
     ],
     department: {
       type: String,
       required: true,
-      enum: [
-        "General",
-        "Emergency",
-        "ICU",
-        "Surgery",
-        "Pediatrics",
-        "Maternity",
-      ],
+      enum: ['General', 'Emergency', 'ICU', 'Surgery', 'Pediatrics', 'Maternity'],
     },
     status: {
       type: String,
-      enum: ["Open", "Full", "Closed"],
-      default: "Open",
+      enum: ['Open', 'Full', 'Closed'],
+      default: 'Open',
     },
     description: {
       type: String,
@@ -129,12 +122,12 @@ const shiftSchema = new mongoose.Schema(
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
   },
   {
@@ -147,34 +140,28 @@ shiftSchema.index({ shiftType: 1, department: 1 });
 shiftSchema.index({ assignedStaff: 1 });
 
 // Virtual for available slots
-shiftSchema.virtual("availableSlots").get(function () {
+shiftSchema.virtual('availableSlots').get(function () {
   return this.requiredStaff - this.assignedStaff.length;
 });
 
 // Virtual to check if shift is full
-shiftSchema.virtual("isFull").get(function () {
+shiftSchema.virtual('isFull').get(function () {
   return this.assignedStaff.length >= this.requiredStaff;
 });
 
 // Auto-update status based on requiredStaff
-shiftSchema.pre("save", function (next) {
+shiftSchema.pre('save', function (next) {
   if (this.assignedStaff.length >= this.requiredStaff) {
-    this.status = "Full";
-  } else if (
-    this.status === "Full" &&
-    this.assignedStaff.length < this.requiredStaff
-  ) {
-    this.status = "Open";
+    this.status = 'Full';
+  } else if (this.status === 'Full' && this.assignedStaff.length < this.requiredStaff) {
+    this.status = 'Open';
   }
   next();
 });
 
 // Method to add staff to shift
 shiftSchema.methods.addStaff = function (staffId) {
-  if (
-    !this.assignedStaff.includes(staffId) &&
-    this.assignedStaff.length < this.requiredStaff
-  ) {
+  if (!this.assignedStaff.includes(staffId) && this.assignedStaff.length < this.requiredStaff) {
     this.assignedStaff.push(staffId);
     return true;
   }
@@ -197,22 +184,16 @@ shiftSchema.statics.findConflicts = function (staffId, startTime, endTime) {
     assignedStaff: staffId,
     $or: [
       {
-        $and: [
-          { startTime: { $lte: startTime } },
-          { endTime: { $gt: startTime } },
-        ],
+        $and: [{ startTime: { $lte: startTime } }, { endTime: { $gt: startTime } }],
       },
       {
         $and: [{ startTime: { $lt: endTime } }, { endTime: { $gte: endTime } }],
       },
       {
-        $and: [
-          { startTime: { $gte: startTime } },
-          { endTime: { $lte: endTime } },
-        ],
+        $and: [{ startTime: { $gte: startTime } }, { endTime: { $lte: endTime } }],
       },
     ],
   });
 };
 
-module.exports = mongoose.model("Shift", shiftSchema);
+module.exports = mongoose.model('Shift', shiftSchema);

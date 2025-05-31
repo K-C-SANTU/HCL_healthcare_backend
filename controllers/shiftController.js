@@ -1,6 +1,6 @@
-const Shift = require("../models/Shift");
-const User = require("../models/User");
-const { validationResult } = require("express-validator");
+const Shift = require('../models/Shift');
+const User = require('../models/User');
+const { validationResult } = require('express-validator');
 
 // Get all shifts with filtering and pagination
 const getAllShifts = async (req, res) => {
@@ -15,8 +15,8 @@ const getAllShifts = async (req, res) => {
     if (status) filter.status = status;
 
     const shifts = await Shift.find(filter)
-      .populate("assignedStaff", "name email role phone")
-      .populate("createdBy", "name email")
+      .populate('assignedStaff', 'name email role phone')
+      .populate('createdBy', 'name email')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ shiftType: 1, startTime: 1 });
@@ -36,7 +36,7 @@ const getAllShifts = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching shifts",
+      message: 'Error fetching shifts',
       error: error.message,
     });
   }
@@ -46,14 +46,14 @@ const getAllShifts = async (req, res) => {
 const getShiftById = async (req, res) => {
   try {
     const shift = await Shift.findById(req.params.id)
-      .populate("assignedStaff", "name email role phone")
-      .populate("createdBy", "name email")
-      .populate("updatedBy", "name email");
+      .populate('assignedStaff', 'name email role phone')
+      .populate('createdBy', 'name email')
+      .populate('updatedBy', 'name email');
 
     if (!shift) {
       return res.status(404).json({
         success: false,
-        message: "Shift not found",
+        message: 'Shift not found',
       });
     }
 
@@ -64,7 +64,7 @@ const getShiftById = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching shift",
+      message: 'Error fetching shift',
       error: error.message,
     });
   }
@@ -77,7 +77,7 @@ const createShift = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "Validation errors",
+        message: 'Validation errors',
         errors: errors.array(),
       });
     }
@@ -91,18 +91,18 @@ const createShift = async (req, res) => {
     await shift.save();
 
     const populatedShift = await Shift.findById(shift._id)
-      .populate("assignedStaff", "name email role")
-      .populate("createdBy", "name email");
+      .populate('assignedStaff', 'name email role')
+      .populate('createdBy', 'name email');
 
     res.status(201).json({
       success: true,
-      message: "Shift created successfully",
+      message: 'Shift created successfully',
       data: populatedShift,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error creating shift",
+      message: 'Error creating shift',
       error: error.message,
     });
   }
@@ -115,7 +115,7 @@ const updateShift = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "Validation errors",
+        message: 'Validation errors',
         errors: errors.array(),
       });
     }
@@ -129,26 +129,26 @@ const updateShift = async (req, res) => {
       new: true,
       runValidators: true,
     })
-      .populate("assignedStaff", "name email role")
-      .populate("createdBy", "name email")
-      .populate("updatedBy", "name email");
+      .populate('assignedStaff', 'name email role')
+      .populate('createdBy', 'name email')
+      .populate('updatedBy', 'name email');
 
     if (!shift) {
       return res.status(404).json({
         success: false,
-        message: "Shift not found",
+        message: 'Shift not found',
       });
     }
 
     res.json({
       success: true,
-      message: "Shift updated successfully",
+      message: 'Shift updated successfully',
       data: shift,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error updating shift",
+      message: 'Error updating shift',
       error: error.message,
     });
   }
@@ -162,18 +162,18 @@ const deleteShift = async (req, res) => {
     if (!shift) {
       return res.status(404).json({
         success: false,
-        message: "Shift not found",
+        message: 'Shift not found',
       });
     }
 
     res.json({
       success: true,
-      message: "Shift deleted successfully",
+      message: 'Shift deleted successfully',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error deleting shift",
+      message: 'Error deleting shift',
       error: error.message,
     });
   }
@@ -186,7 +186,7 @@ const assignStaff = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "Validation errors",
+        message: 'Validation errors',
         errors: errors.array(),
       });
     }
@@ -198,7 +198,7 @@ const assignStaff = async (req, res) => {
     if (!shift) {
       return res.status(404).json({
         success: false,
-        message: "Shift not found",
+        message: 'Shift not found',
       });
     }
 
@@ -234,17 +234,16 @@ const assignStaff = async (req, res) => {
       }
 
       // Check for time conflicts - updated to not require date
-      const conflicts = await Shift.findConflicts(
-        staffId,
-        shift.startTime,
-        shift.endTime
-      ).populate("assignedStaff", "name email role");
+      const conflicts = await Shift.findConflicts(staffId, shift.startTime, shift.endTime).populate(
+        'assignedStaff',
+        'name email role'
+      );
 
       if (conflicts.length > 0) {
         conflictResults.push({
           staffId,
           staffName: staff.name,
-          conflicts: conflicts.map((c) => ({
+          conflicts: conflicts.map(c => ({
             shiftId: c._id,
             shiftType: c.shiftType,
             startTime: c.startTime,
@@ -261,7 +260,7 @@ const assignStaff = async (req, res) => {
     if (conflictResults.length > 0) {
       return res.status(409).json({
         success: false,
-        message: "Shift conflicts detected",
+        message: 'Shift conflicts detected',
         conflicts: conflictResults,
       });
     }
@@ -272,8 +271,8 @@ const assignStaff = async (req, res) => {
     await shift.save();
 
     const updatedShift = await Shift.findById(shiftId)
-      .populate("assignedStaff", "name email role phone")
-      .populate("createdBy", "name email");
+      .populate('assignedStaff', 'name email role phone')
+      .populate('createdBy', 'name email');
 
     res.json({
       success: true,
@@ -283,7 +282,7 @@ const assignStaff = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error assigning staff",
+      message: 'Error assigning staff',
       error: error.message,
     });
   }
@@ -298,7 +297,7 @@ const removeStaff = async (req, res) => {
     if (!Array.isArray(staffIds) || staffIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "staffIds must be a non-empty array",
+        message: 'staffIds must be a non-empty array',
       });
     }
 
@@ -306,31 +305,29 @@ const removeStaff = async (req, res) => {
     if (!shift) {
       return res.status(404).json({
         success: false,
-        message: "Shift not found",
+        message: 'Shift not found',
       });
     }
 
     // Remove staff
-    shift.assignedStaff = shift.assignedStaff.filter(
-      (id) => !staffIds.includes(id.toString())
-    );
+    shift.assignedStaff = shift.assignedStaff.filter(id => !staffIds.includes(id.toString()));
     shift.updatedBy = req.user.id;
 
     await shift.save();
 
     const updatedShift = await Shift.findById(shiftId)
-      .populate("assignedStaff", "name email role phone")
-      .populate("createdBy", "name email");
+      .populate('assignedStaff', 'name email role phone')
+      .populate('createdBy', 'name email');
 
     res.json({
       success: true,
-      message: "Staff removed successfully",
+      message: 'Staff removed successfully',
       data: updatedShift,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error removing staff",
+      message: 'Error removing staff',
       error: error.message,
     });
   }
@@ -346,7 +343,7 @@ const getShiftsByFilter = async (req, res) => {
     if (department) filter.department = department;
 
     const shifts = await Shift.find(filter)
-      .populate("assignedStaff", "name email role")
+      .populate('assignedStaff', 'name email role')
       .sort({ shiftType: 1, startTime: 1 });
 
     res.json({
@@ -357,7 +354,7 @@ const getShiftsByFilter = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching shifts by filter",
+      message: 'Error fetching shifts by filter',
       error: error.message,
     });
   }
@@ -373,7 +370,7 @@ const getStaffShifts = async (req, res) => {
     };
 
     const shifts = await Shift.find(filter)
-      .populate("assignedStaff", "name email role")
+      .populate('assignedStaff', 'name email role')
       .sort({ shiftType: 1, startTime: 1 });
 
     res.json({
@@ -384,7 +381,7 @@ const getStaffShifts = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching staff shifts",
+      message: 'Error fetching staff shifts',
       error: error.message,
     });
   }
@@ -398,15 +395,14 @@ const checkConflicts = async (req, res) => {
     if (!staffId || !startTime || !endTime) {
       return res.status(400).json({
         success: false,
-        message: "staffId, startTime, and endTime are required",
+        message: 'staffId, startTime, and endTime are required',
       });
     }
 
-    const conflicts = await Shift.findConflicts(
-      staffId,
-      startTime,
-      endTime
-    ).populate("assignedStaff", "name email role");
+    const conflicts = await Shift.findConflicts(staffId, startTime, endTime).populate(
+      'assignedStaff',
+      'name email role'
+    );
 
     res.json({
       success: true,
@@ -418,7 +414,7 @@ const checkConflicts = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error checking conflicts",
+      message: 'Error checking conflicts',
       error: error.message,
     });
   }

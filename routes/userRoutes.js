@@ -1,4 +1,4 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 const {
   getAllUsers,
@@ -7,12 +7,9 @@ const {
   updateUser,
   deleteUser,
   getUsersByRole,
-} = require("../controllers/userController");
-const {
-  validateUser,
-  validateUserUpdate,
-} = require("../middleware/validation");
-const { protect, authorize } = require("../middleware/auth");
+} = require('../controllers/userController');
+const { validateUser, validateUserUpdate } = require('../middleware/validation');
+const { protect, authorize } = require('../middleware/auth');
 
 /**
  * @swagger
@@ -84,8 +81,9 @@ const { protect, authorize } = require("../middleware/auth");
  *       401:
  *         description: Not authorized
  */
-router.route("/")
-  .post(protect, authorize("admin"), validateUser, createUser)
+router
+  .route('/')
+  .post(protect, authorize('admin'), validateUser, createUser)
   .get(protect, getAllUsers);
 
 /**
@@ -203,14 +201,15 @@ router.route("/")
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.route("/:id")
+router
+  .route('/:id')
   .get(protect, getUserById)
-  .put(protect, authorize("admin"), validateUserUpdate, updateUser)
-  .delete(protect, authorize("admin"), deleteUser);
+  .put(protect, authorize('admin'), validateUserUpdate, updateUser)
+  .delete(protect, authorize('admin'), deleteUser);
 
 // @route   GET /api/users/role/:role
 // @desc    Get users by role
 // @access  Private - Admin only
-router.get("/role/:role", protect, authorize("admin"), getUsersByRole);
+router.get('/role/:role', protect, authorize('admin'), getUsersByRole);
 
 module.exports = router;
