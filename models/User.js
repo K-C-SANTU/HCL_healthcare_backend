@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 /**
  * @swagger
@@ -79,14 +79,7 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: [
-        "admin",
-        "doctor",
-        "nurse",
-        "receptionist",
-        "pharmacist",
-        "technician",
-      ],
+      enum: ['admin', 'doctor', 'nurse', 'receptionist', 'pharmacist', 'technician'],
     },
     createdBy: {
       type: Date,
@@ -103,9 +96,9 @@ const userSchema = new mongoose.Schema(
 );
 
 // Hash password before saving
-userSchema.pre("save", async function (next) {
+userSchema.pre('save', async function (next) {
   // Only hash if password is modified
-  if (!this.isModified("password")) {
+  if (!this.isModified('password')) {
     this.updatedBy = new Date();
     return next();
   }
@@ -126,4 +119,4 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model('User', userSchema);

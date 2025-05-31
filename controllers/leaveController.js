@@ -1,7 +1,7 @@
-const Leave = require("../models/Leave");
-const User = require("../models/User");
-const Shift = require("../models/Shift");
-const { validationResult } = require("express-validator");
+const Leave = require('../models/Leave');
+const User = require('../models/User');
+const Shift = require('../models/Shift');
+const { validationResult } = require('express-validator');
 
 // Apply for leave
 const applyLeave = async (req, res) => {
@@ -10,37 +10,30 @@ const applyLeave = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "Validation errors",
+        message: 'Validation errors',
         errors: errors.array(),
       });
     }
 
-    const {
-      leaveType,
-      startDate,
-      endDate,
-      reason,
-      isEmergency,
-      handoverNotes,
-      emergencyContact,
-    } = req.body;
+    const { leaveType, startDate, endDate, reason, isEmergency, handoverNotes, emergencyContact } =
+      req.body;
 
     // For non-admin users, set staffId to their own ID
-    const staffId = req.user.role === "admin" ? req.body.staffId : req.user.id;
+    const staffId = req.user.role === 'admin' ? req.body.staffId : req.user.id;
 
     // Validate staff exists
     const staff = await User.findById(staffId);
     if (!staff) {
       return res.status(404).json({
         success: false,
-        message: "Staff member not found",
+        message: 'Staff member not found',
       });
     }
 
     // Check for overlapping leaves
     const overlappingLeaves = await Leave.find({
       staffId,
-      status: { $in: ["Pending", "Approved"] },
+      status: { $in: ['Pending', 'Approved'] },
       $or: [
         {
           startDate: { $lte: new Date(endDate) },
@@ -52,7 +45,7 @@ const applyLeave = async (req, res) => {
     if (overlappingLeaves.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "Leave dates overlap with existing leave request",
+        message: 'Leave dates overlap with existing leave request',
         overlappingLeaves,
       });
     }
@@ -74,26 +67,26 @@ const applyLeave = async (req, res) => {
       isEmergency: isEmergency || false,
       handoverNotes,
       emergencyContact,
-      affectedShifts: affectedShifts.map((shift) => shift._id),
+      affectedShifts: affectedShifts.map(shift => shift._id),
     };
 
     const leave = new Leave(leaveData);
     await leave.save();
 
     const populatedLeave = await Leave.findById(leave._id)
-      .populate("staffId", "name email role phone")
-      .populate("affectedShifts", "shiftType department")
-      .populate("replacementStaff.staffId", "name role");
+      .populate('staffId', 'name email role phone')
+      .populate('affectedShifts', 'shiftType department')
+      .populate('replacementStaff.staffId', 'name role');
 
     res.status(201).json({
       success: true,
-      message: "Leave application submitted successfully",
+      message: 'Leave application submitted successfully',
       data: populatedLeave,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error applying for leave",
+      message: 'Error applying for leave',
       error: error.message,
     });
   }
@@ -106,7 +99,7 @@ const reviewLeave = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: "Validation errors",
+        message: 'Validation errors',
         errors: errors.array(),
       });
     }
@@ -115,10 +108,10 @@ const reviewLeave = async (req, res) => {
     const { status, reviewComments, replacementStaff } = req.body;
 
     // Only admin can review leaves
-    if (req.user.role !== "admin") {
+    if (req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        message: "Only admins can review leave applications",
+        message: 'Only admins can review leave applications',
       });
     }
 
@@ -126,14 +119,14 @@ const reviewLeave = async (req, res) => {
     if (!leave) {
       return res.status(404).json({
         success: false,
-        message: "Leave application not found",
+        message: 'Leave application not found',
       });
     }
 
-    if (leave.status !== "Pending") {
+    if (leave.status !== 'Pending') {
       return res.status(400).json({
         success: false,
-        message: "Leave application has already been reviewed",
+        message: 'Leave application has already been reviewed',
       });
     }
 
@@ -150,7 +143,7 @@ const reviewLeave = async (req, res) => {
     await leave.save();
 
     // If approved, update affected shifts to remove the staff
-    if (status === "Approved" && leave.affectedShifts.length > 0) {
+    if (status === 'Approved' && leave.affectedShifts.length > 0) {
       await Shift.updateMany(
         { _id: { $in: leave.affectedShifts } },
         { $pull: { assignedStaff: leave.staffId } }
@@ -167,10 +160,10 @@ const reviewLeave = async (req, res) => {
     }
 
     const populatedLeave = await Leave.findById(leave._id)
-      .populate("staffId", "name email role phone")
-      .populate("reviewedBy", "name email")
-      .populate("affectedShifts", "shiftType department")
-      .populate("replacementStaff.staffId", "name role");
+      .populate('staffId', 'name email role phone')
+      .populate('reviewedBy', 'name email')
+      .populate('affectedShifts', 'shiftType department')
+      .populate('replacementStaff.staffId', 'name role');
 
     res.json({
       success: true,
@@ -180,7 +173,7 @@ const reviewLeave = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error reviewing leave application",
+      message: 'Error reviewing leave application',
       error: error.message,
     });
   }
@@ -204,7 +197,7 @@ const getLeaves = async (req, res) => {
     const filter = {};
 
     // Non-admin users can only see their own leaves
-    if (req.user.role !== "admin") {
+    if (req.user.role !== 'admin') {
       filter.staffId = req.user.id;
     } else if (staffId) {
       filter.staffId = staffId;
@@ -233,25 +226,25 @@ const getLeaves = async (req, res) => {
       { $match: filter },
       {
         $lookup: {
-          from: "users",
-          localField: "staffId",
-          foreignField: "_id",
-          as: "staff",
+          from: 'users',
+          localField: 'staffId',
+          foreignField: '_id',
+          as: 'staff',
         },
       },
       {
         $lookup: {
-          from: "users",
-          localField: "reviewedBy",
-          foreignField: "_id",
-          as: "reviewer",
+          from: 'users',
+          localField: 'reviewedBy',
+          foreignField: '_id',
+          as: 'reviewer',
         },
       },
     ];
 
     if (department) {
       pipeline.push({
-        $match: { "staff.department": department },
+        $match: { 'staff.department': department },
       });
     }
 
@@ -277,7 +270,7 @@ const getLeaves = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching leave applications",
+      message: 'Error fetching leave applications',
       error: error.message,
     });
   }
@@ -289,26 +282,23 @@ const getLeaveById = async (req, res) => {
     const { id } = req.params;
 
     const leave = await Leave.findById(id)
-      .populate("staffId", "name email role phone department")
-      .populate("reviewedBy", "name email")
-      .populate("affectedShifts", "shiftType department startTime endTime")
-      .populate("replacementStaff.staffId", "name role");
+      .populate('staffId', 'name email role phone department')
+      .populate('reviewedBy', 'name email')
+      .populate('affectedShifts', 'shiftType department startTime endTime')
+      .populate('replacementStaff.staffId', 'name role');
 
     if (!leave) {
       return res.status(404).json({
         success: false,
-        message: "Leave application not found",
+        message: 'Leave application not found',
       });
     }
 
     // Non-admin users can only view their own leaves
-    if (
-      req.user.role !== "admin" &&
-      leave.staffId._id.toString() !== req.user.id
-    ) {
+    if (req.user.role !== 'admin' && leave.staffId._id.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: "Access denied",
+        message: 'Access denied',
       });
     }
 
@@ -319,7 +309,7 @@ const getLeaveById = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching leave application",
+      message: 'Error fetching leave application',
       error: error.message,
     });
   }
@@ -334,38 +324,38 @@ const cancelLeave = async (req, res) => {
     if (!leave) {
       return res.status(404).json({
         success: false,
-        message: "Leave application not found",
+        message: 'Leave application not found',
       });
     }
 
     // Check if user can cancel this leave
-    if (req.user.role !== "admin" && leave.staffId.toString() !== req.user.id) {
+    if (req.user.role !== 'admin' && leave.staffId.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: "Access denied",
+        message: 'Access denied',
       });
     }
 
-    if (leave.status === "Cancelled") {
+    if (leave.status === 'Cancelled') {
       return res.status(400).json({
         success: false,
-        message: "Leave application is already cancelled",
+        message: 'Leave application is already cancelled',
       });
     }
 
-    if (leave.status === "Approved" && new Date() >= leave.startDate) {
+    if (leave.status === 'Approved' && new Date() >= leave.startDate) {
       return res.status(400).json({
         success: false,
-        message: "Cannot cancel approved leave that has already started",
+        message: 'Cannot cancel approved leave that has already started',
       });
     }
 
     // Update leave status
-    leave.status = "Cancelled";
+    leave.status = 'Cancelled';
     await leave.save();
 
     // If leave was approved, restore staff to affected shifts
-    if (leave.status === "Approved") {
+    if (leave.status === 'Approved') {
       await Shift.updateMany(
         { _id: { $in: leave.affectedShifts } },
         { $push: { assignedStaff: leave.staffId } }
@@ -382,18 +372,18 @@ const cancelLeave = async (req, res) => {
     }
 
     const populatedLeave = await Leave.findById(leave._id)
-      .populate("staffId", "name email role phone")
-      .populate("reviewedBy", "name email");
+      .populate('staffId', 'name email role phone')
+      .populate('reviewedBy', 'name email');
 
     res.json({
       success: true,
-      message: "Leave application cancelled successfully",
+      message: 'Leave application cancelled successfully',
       data: populatedLeave,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error cancelling leave application",
+      message: 'Error cancelling leave application',
       error: error.message,
     });
   }
@@ -406,10 +396,10 @@ const getLeaveStats = async (req, res) => {
     const { year = new Date().getFullYear() } = req.query;
 
     // Non-admin users can only view their own stats
-    if (req.user.role !== "admin" && staffId !== req.user.id) {
+    if (req.user.role !== 'admin' && staffId !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: "Access denied",
+        message: 'Access denied',
       });
     }
 
@@ -417,22 +407,22 @@ const getLeaveStats = async (req, res) => {
 
     // Calculate leave balance (assuming 21 days annual leave)
     const leaveEntitlements = {
-      "Sick Leave": 12,
-      "Vacation Leave": 21,
-      "Emergency Leave": 5,
-      "Personal Leave": 3,
-      "Maternity Leave": 90,
-      "Paternity Leave": 15,
-      "Compensatory Leave": 10,
-      "Bereavement Leave": 3,
+      'Sick Leave': 12,
+      'Vacation Leave': 21,
+      'Emergency Leave': 5,
+      'Personal Leave': 3,
+      'Maternity Leave': 90,
+      'Paternity Leave': 15,
+      'Compensatory Leave': 10,
+      'Bereavement Leave': 3,
     };
 
     const balances = {};
     let totalUsed = 0;
     let totalEntitled = 0;
 
-    Object.keys(leaveEntitlements).forEach((leaveType) => {
-      const used = stats.find((stat) => stat._id === leaveType)?.totalDays || 0;
+    Object.keys(leaveEntitlements).forEach(leaveType => {
+      const used = stats.find(stat => stat._id === leaveType)?.totalDays || 0;
       const entitled = leaveEntitlements[leaveType];
 
       balances[leaveType] = {
@@ -461,7 +451,7 @@ const getLeaveStats = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching leave statistics",
+      message: 'Error fetching leave statistics',
       error: error.message,
     });
   }
@@ -475,7 +465,7 @@ const getTeamLeaveCalendar = async (req, res) => {
     if (!startDate || !endDate) {
       return res.status(400).json({
         success: false,
-        message: "startDate and endDate are required",
+        message: 'startDate and endDate are required',
       });
     }
 
@@ -493,7 +483,7 @@ const getTeamLeaveCalendar = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching team leave calendar",
+      message: 'Error fetching team leave calendar',
       error: error.message,
     });
   }
@@ -503,29 +493,27 @@ const getTeamLeaveCalendar = async (req, res) => {
 const getPendingLeaves = async (req, res) => {
   try {
     // Only admin can access this endpoint
-    if (req.user.role !== "admin") {
+    if (req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        message: "Access denied",
+        message: 'Access denied',
       });
     }
 
-    const pendingLeaves = await Leave.find({ status: "Pending" })
-      .populate("staffId", "name email role phone department")
-      .populate("affectedShifts", "shiftType department")
+    const pendingLeaves = await Leave.find({ status: 'Pending' })
+      .populate('staffId', 'name email role phone department')
+      .populate('affectedShifts', 'shiftType department')
       .sort({ appliedDate: 1 }); // Oldest first
 
     // Categorize by urgency
     const urgent = pendingLeaves.filter(
-      (leave) =>
-        leave.isEmergency ||
-        new Date(leave.startDate) - new Date() <= 2 * 24 * 60 * 60 * 1000 // Within 2 days
+      leave =>
+        leave.isEmergency || new Date(leave.startDate) - new Date() <= 2 * 24 * 60 * 60 * 1000 // Within 2 days
     );
 
     const regular = pendingLeaves.filter(
-      (leave) =>
-        !leave.isEmergency &&
-        new Date(leave.startDate) - new Date() > 2 * 24 * 60 * 60 * 1000
+      leave =>
+        !leave.isEmergency && new Date(leave.startDate) - new Date() > 2 * 24 * 60 * 60 * 1000
     );
 
     res.json({
@@ -539,7 +527,7 @@ const getPendingLeaves = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching pending leave applications",
+      message: 'Error fetching pending leave applications',
       error: error.message,
     });
   }

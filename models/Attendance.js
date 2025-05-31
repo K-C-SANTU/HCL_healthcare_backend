@@ -1,15 +1,15 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const attendanceSchema = new mongoose.Schema(
   {
     staffId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     shiftId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Shift",
+      ref: 'Shift',
       required: true,
     },
     date: {
@@ -19,24 +19,13 @@ const attendanceSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: [
-        "Present",
-        "Absent",
-        "Late",
-        "Sick Leave",
-        "Emergency Leave",
-        "Half Day",
-      ],
-      default: "Present",
+      enum: ['Present', 'Absent', 'Late', 'Sick Leave', 'Emergency Leave', 'Half Day'],
+      default: 'Present',
     },
     checkInTime: {
       type: String, // Format: "HH:MM"
       required: function () {
-        return (
-          this.status === "Present" ||
-          this.status === "Late" ||
-          this.status === "Half Day"
-        );
+        return this.status === 'Present' || this.status === 'Late' || this.status === 'Half Day';
       },
     },
     checkOutTime: {
@@ -58,7 +47,7 @@ const attendanceSchema = new mongoose.Schema(
     },
     markedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true, // Admin who marked the attendance
     },
     markedAt: {
@@ -83,11 +72,9 @@ const attendanceSchema = new mongoose.Schema(
     },
     leaveId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Leave",
+      ref: 'Leave',
       required: function () {
-        return (
-          this.status === "Sick Leave" || this.status === "Emergency Leave"
-        );
+        return this.status === 'Sick Leave' || this.status === 'Emergency Leave';
       },
     },
   },
@@ -102,7 +89,7 @@ attendanceSchema.index({ shiftId: 1, date: 1 });
 attendanceSchema.index({ date: 1, status: 1 });
 
 // Virtual for attendance percentage
-attendanceSchema.virtual("attendancePercentage").get(function () {
+attendanceSchema.virtual('attendancePercentage').get(function () {
   if (this.scheduledHoursWorked === 0) return 0;
   return Math.round((this.actualHoursWorked / this.scheduledHoursWorked) * 100);
 });
@@ -113,10 +100,8 @@ attendanceSchema.methods.calculateHoursWorked = function () {
     return 0;
   }
 
-  const [checkInHour, checkInMinute] = this.checkInTime.split(":").map(Number);
-  const [checkOutHour, checkOutMinute] = this.checkOutTime
-    .split(":")
-    .map(Number);
+  const [checkInHour, checkInMinute] = this.checkInTime.split(':').map(Number);
+  const [checkOutHour, checkOutMinute] = this.checkOutTime.split(':').map(Number);
 
   const checkInMinutes = checkInHour * 60 + checkInMinute;
   let checkOutMinutes = checkOutHour * 60 + checkOutMinute;
@@ -132,11 +117,10 @@ attendanceSchema.methods.calculateHoursWorked = function () {
 
 // Method to calculate late entry
 attendanceSchema.methods.calculateLateEntry = function (shiftStartTime) {
-  if (!this.checkInTime || !shiftStartTime)
-    return { isLate: false, minutes: 0 };
+  if (!this.checkInTime || !shiftStartTime) return { isLate: false, minutes: 0 };
 
-  const [shiftHour, shiftMinute] = shiftStartTime.split(":").map(Number);
-  const [checkInHour, checkInMinute] = this.checkInTime.split(":").map(Number);
+  const [shiftHour, shiftMinute] = shiftStartTime.split(':').map(Number);
+  const [checkInHour, checkInMinute] = this.checkInTime.split(':').map(Number);
 
   const shiftStartMinutes = shiftHour * 60 + shiftMinute;
   const checkInMinutes = checkInHour * 60 + checkInMinute;
@@ -151,13 +135,10 @@ attendanceSchema.methods.calculateLateEntry = function (shiftStartTime) {
 
 // Method to calculate early exit
 attendanceSchema.methods.calculateEarlyExit = function (shiftEndTime) {
-  if (!this.checkOutTime || !shiftEndTime)
-    return { isEarly: false, minutes: 0 };
+  if (!this.checkOutTime || !shiftEndTime) return { isEarly: false, minutes: 0 };
 
-  const [shiftHour, shiftMinute] = shiftEndTime.split(":").map(Number);
-  const [checkOutHour, checkOutMinute] = this.checkOutTime
-    .split(":")
-    .map(Number);
+  const [shiftHour, shiftMinute] = shiftEndTime.split(':').map(Number);
+  const [checkOutHour, checkOutMinute] = this.checkOutTime.split(':').map(Number);
 
   let shiftEndMinutes = shiftHour * 60 + shiftMinute;
   let checkOutMinutes = checkOutHour * 60 + checkOutMinute;
@@ -179,7 +160,7 @@ attendanceSchema.methods.calculateEarlyExit = function (shiftEndTime) {
 };
 
 // Pre-save middleware to calculate fields
-attendanceSchema.pre("save", function (next) {
+attendanceSchema.pre('save', function (next) {
   // Calculate actual hours worked
   this.actualHoursWorked = this.calculateHoursWorked();
 
@@ -187,11 +168,7 @@ attendanceSchema.pre("save", function (next) {
 });
 
 // Static method to get attendance statistics
-attendanceSchema.statics.getAttendanceStats = function (
-  staffId,
-  startDate,
-  endDate
-) {
+attendanceSchema.statics.getAttendanceStats = function (staffId, startDate, endDate) {
   return this.aggregate([
     {
       $match: {
@@ -204,20 +181,16 @@ attendanceSchema.statics.getAttendanceStats = function (
     },
     {
       $group: {
-        _id: "$status",
+        _id: '$status',
         count: { $sum: 1 },
-        totalHours: { $sum: "$actualHoursWorked" },
+        totalHours: { $sum: '$actualHoursWorked' },
       },
     },
   ]);
 };
 
 // Static method to find attendance by date range
-attendanceSchema.statics.findByDateRange = function (
-  startDate,
-  endDate,
-  filters = {}
-) {
+attendanceSchema.statics.findByDateRange = function (startDate, endDate, filters = {}) {
   const matchConditions = {
     date: {
       $gte: startDate,
@@ -227,11 +200,11 @@ attendanceSchema.statics.findByDateRange = function (
   };
 
   return this.find(matchConditions)
-    .populate("staffId", "name email role phone")
-    .populate("shiftId", "shiftType startTime endTime department")
-    .populate("markedBy", "name email")
-    .populate("leaveId", "leaveType reason")
+    .populate('staffId', 'name email role phone')
+    .populate('shiftId', 'shiftType startTime endTime department')
+    .populate('markedBy', 'name email')
+    .populate('leaveId', 'leaveType reason')
     .sort({ date: -1, createdAt: -1 });
 };
 
-module.exports = mongoose.model("Attendance", attendanceSchema);
+module.exports = mongoose.model('Attendance', attendanceSchema);
